@@ -3,10 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import ItemsGrid from "@/components/ItemsGrid";
 import PaymentModal from "@/components/PaymentModal";
 import type { ItemWithSeller } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Menu, X, SlidersHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 export default function ItemsPage() {
   const [selectedItem, setSelectedItem] = useState<ItemWithSeller | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
 
   const { data: items = [], isLoading } = useQuery<ItemWithSeller[]>({
     queryKey: ['/api/items'],
@@ -136,6 +145,29 @@ export default function ItemsPage() {
     }
   ];
 
+  const displayItems = items.length > 0 ? items : mockItems;
+
+  const categories = ["Electronics", "Textbooks", "Furniture", "Clothing", "School Supplies", "Other"];
+  const conditions = ["new", "like-new", "good", "fair"];
+
+  const handleCategoryToggle = (category: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
+    );
+  };
+
+  const handleConditionToggle = (condition: string) => {
+    setSelectedConditions(prev =>
+      prev.includes(condition) ? prev.filter(c => c !== condition) : [...prev, condition]
+    );
+  };
+
+  const filteredItems = displayItems.filter(item => {
+    const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(item.category);
+    const conditionMatch = selectedConditions.length === 0 || selectedConditions.includes(item.condition);
+    return categoryMatch && conditionMatch;
+  });
+
   const handleItemClick = (item: ItemWithSeller) => {
     setSelectedItem(item);
     setIsPaymentModalOpen(true);
@@ -143,7 +175,6 @@ export default function ItemsPage() {
 
   const handleContactSeller = (item: ItemWithSeller) => {
     console.log('Contacting seller:', item.seller.name);
-    // TODO: Implement messaging system
     alert(`Coming soon: Direct messaging with ${item.seller.name}`);
   };
 
@@ -153,12 +184,9 @@ export default function ItemsPage() {
       method: paymentMethod
     });
     
-    // TODO: Update item status, notify seller, etc.
     setIsPaymentModalOpen(false);
     setSelectedItem(null);
   };
-
-  const displayItems = items.length > 0 ? items : mockItems;
 
   if (isLoading) {
     return (
@@ -171,21 +199,127 @@ export default function ItemsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold font-heading mb-4">
-          Browse Items
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Discover great deals from fellow students on your campus
-        </p>
+    <div className="flex h-[calc(100vh-4rem)]">
+      {/* Sidebar */}
+      <div className={cn(
+        "border-r bg-card transition-all duration-300 flex flex-col overflow-y-auto",
+        sidebarOpen ? "w-64" : "w-0 overflow-hidden"
+      )}>
+        <div className="p-4 border-b flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4" />
+            <h2 className="font-semibold">Filters</h2>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden"
+            data-testid="button-close-sidebar"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <div className="flex-1 p-4 space-y-6">
+          {/* Categories */}
+          <div className="space-y-3">
+            <h3 className="font-medium text-sm">Categories</h3>
+            <div className="space-y-2">
+              {categories.map((category) => (
+                <div key={category} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`category-${category}`}
+                    checked={selectedCategories.includes(category)}
+                    onCheckedChange={() => handleCategoryToggle(category)}
+                    data-testid={`checkbox-category-${category.toLowerCase()}`}
+                  />
+                  <Label
+                    htmlFor={`category-${category}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {category}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Condition */}
+          <div className="space-y-3">
+            <h3 className="font-medium text-sm">Condition</h3>
+            <div className="space-y-2">
+              {conditions.map((condition) => (
+                <div key={condition} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`condition-${condition}`}
+                    checked={selectedConditions.includes(condition)}
+                    onCheckedChange={() => handleConditionToggle(condition)}
+                    data-testid={`checkbox-condition-${condition}`}
+                  />
+                  <Label
+                    htmlFor={`condition-${condition}`}
+                    className="text-sm font-normal cursor-pointer capitalize"
+                  >
+                    {condition.replace('-', ' ')}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Clear Filters */}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              setSelectedCategories([]);
+              setSelectedConditions([]);
+            }}
+            data-testid="button-clear-filters"
+          >
+            Clear All Filters
+          </Button>
+        </div>
       </div>
 
-      <ItemsGrid
-        items={displayItems}
-        onItemClick={handleItemClick}
-        onContactSeller={handleContactSeller}
-      />
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              {!sidebarOpen && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSidebarOpen(true)}
+                  data-testid="button-open-sidebar"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              )}
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold font-heading">
+                  Browse Items
+                </h1>
+              </div>
+            </div>
+            <p className="text-lg text-muted-foreground">
+              Discover great deals from fellow students on your campus
+            </p>
+          </div>
+
+          <ItemsGrid
+            items={filteredItems}
+            onItemClick={handleItemClick}
+            onContactSeller={handleContactSeller}
+          />
+        </div>
+      </div>
 
       <PaymentModal
         isOpen={isPaymentModalOpen}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,85 +8,47 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocation } from "wouter";
-import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Menu, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle } from "lucide-react";
 
 export default function AccountPage() {
   const [location, setLocation] = useLocation();
   const params = new URLSearchParams(location.split('?')[1]);
   const initialTab = params.get('tab') || 'dashboard';
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: User },
-    { id: 'market', label: 'My Market', icon: Package },
-    { id: 'bids', label: 'My Bids', icon: Gavel },
-    { id: 'purchases', label: 'My Purchases', icon: ShoppingCart },
-    { id: 'locoloco', label: 'My LocoLoco', icon: Megaphone },
-    { id: 'report', label: 'Report a Concern', icon: AlertTriangle },
-  ];
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
-      {/* Sidebar */}
-      <div className={cn(
-        "border-r bg-card transition-all duration-300 flex flex-col",
-        sidebarOpen ? "w-64" : "w-0 overflow-hidden"
-      )}>
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="font-semibold">Account Menu</h2>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden"
-            data-testid="button-close-sidebar"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <nav className="flex-1 p-2 space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Button
-                key={item.id}
-                variant={activeTab === item.id ? "secondary" : "ghost"}
-                className={cn(
-                  "w-full justify-start gap-3",
-                  activeTab === item.id && "bg-secondary"
-                )}
-                onClick={() => setActiveTab(item.id)}
-                data-testid={`nav-${item.id}`}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Button>
-            );
-          })}
-        </nav>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="flex gap-6">
+        <TabsList className="flex flex-col h-auto w-48 bg-card p-2">
+          <TabsTrigger value="dashboard" className="w-full justify-start gap-3" data-testid="tab-dashboard">
+            <User className="h-4 w-4" />
+            <span>Dashboard</span>
+          </TabsTrigger>
+          <TabsTrigger value="market" className="w-full justify-start gap-3" data-testid="tab-market">
+            <Package className="h-4 w-4" />
+            <span>My Market</span>
+          </TabsTrigger>
+          <TabsTrigger value="bids" className="w-full justify-start gap-3" data-testid="tab-bids">
+            <Gavel className="h-4 w-4" />
+            <span>My Bids</span>
+          </TabsTrigger>
+          <TabsTrigger value="purchases" className="w-full justify-start gap-3" data-testid="tab-purchases">
+            <ShoppingCart className="h-4 w-4" />
+            <span>Purchases</span>
+          </TabsTrigger>
+          <TabsTrigger value="locoloco" className="w-full justify-start gap-3" data-testid="tab-locoloco">
+            <Megaphone className="h-4 w-4" />
+            <span>My LocoLoco</span>
+          </TabsTrigger>
+          <TabsTrigger value="report" className="w-full justify-start gap-3" data-testid="tab-report">
+            <AlertTriangle className="h-4 w-4" />
+            <span>Report</span>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        {/* Mobile Hamburger */}
-        {!sidebarOpen && (
-          <div className="p-4 border-b">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(true)}
-              data-testid="button-open-sidebar"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
-        )}
-
-        <div className="p-6">
-          {/* Dashboard Content */}
-          {activeTab === 'dashboard' && (
+        <div className="flex-1">
+          {/* Dashboard Tab */}
+          <TabsContent value="dashboard">
             <Card>
               <CardHeader>
                 <CardTitle>Account Dashboard</CardTitle>
@@ -120,10 +83,10 @@ export default function AccountPage() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
 
-          {/* My Market Content */}
-          {activeTab === 'market' && (
+          {/* My Market Tab */}
+          <TabsContent value="market">
             <Card>
               <CardHeader>
                 <CardTitle>My Market</CardTitle>
@@ -133,10 +96,10 @@ export default function AccountPage() {
                 <p className="text-muted-foreground">No items listed yet. Start selling!</p>
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
 
-          {/* My Bids Content */}
-          {activeTab === 'bids' && (
+          {/* My Bids Tab */}
+          <TabsContent value="bids">
             <Card>
               <CardHeader>
                 <CardTitle>My Bids</CardTitle>
@@ -146,10 +109,10 @@ export default function AccountPage() {
                 <p className="text-muted-foreground">No active bids.</p>
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
 
-          {/* My Purchases Content */}
-          {activeTab === 'purchases' && (
+          {/* My Purchases Tab */}
+          <TabsContent value="purchases">
             <Card>
               <CardHeader>
                 <CardTitle>My Purchases</CardTitle>
@@ -159,10 +122,10 @@ export default function AccountPage() {
                 <p className="text-muted-foreground">No purchases yet.</p>
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
 
-          {/* My LocoLoco Content */}
-          {activeTab === 'locoloco' && (
+          {/* My LocoLoco Tab */}
+          <TabsContent value="locoloco">
             <Card>
               <CardHeader>
                 <CardTitle>My LocoLoco</CardTitle>
@@ -174,10 +137,10 @@ export default function AccountPage() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
 
-          {/* Report a Concern Content */}
-          {activeTab === 'report' && (
+          {/* Report a Concern Tab */}
+          <TabsContent value="report">
             <Card>
               <CardHeader>
                 <CardTitle>Report a Concern</CardTitle>
@@ -214,9 +177,9 @@ export default function AccountPage() {
                 <Button data-testid="button-submit-report">Submit Report</Button>
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
         </div>
-      </div>
+      </Tabs>
     </div>
   );
 }
