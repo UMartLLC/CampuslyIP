@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import ItemsGrid from "@/components/ItemsGrid";
 import PaymentModal from "@/components/PaymentModal";
 import type { ItemWithSeller } from "@shared/schema";
@@ -7,8 +8,12 @@ export default function ItemsPage() {
   const [selectedItem, setSelectedItem] = useState<ItemWithSeller | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  // TODO: remove mock data - this will come from API
-  const mockItems: ItemWithSeller[] = [
+  const { data: items = [], isLoading } = useQuery<ItemWithSeller[]>({
+    queryKey: ['/api/items'],
+  });
+
+  // TODO: remove mock data - fallback for empty state
+  const mockItems: ItemWithSeller[] = items.length > 0 ? [] : [
     {
       id: "1",
       title: "MacBook Air M2 - Barely Used",
@@ -153,6 +158,18 @@ export default function ItemsPage() {
     setSelectedItem(null);
   };
 
+  const displayItems = items.length > 0 ? items : mockItems;
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p>Loading items...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -165,7 +182,7 @@ export default function ItemsPage() {
       </div>
 
       <ItemsGrid
-        items={mockItems}
+        items={displayItems}
         onItemClick={handleItemClick}
         onContactSeller={handleContactSeller}
       />

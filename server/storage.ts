@@ -22,6 +22,16 @@ export class MemStorage implements IStorage {
   constructor() {
     this.users = new Map();
     this.items = new Map();
+    
+    const defaultUser: User = {
+      id: "temp-user-id",
+      username: "defaultuser",
+      email: "default@unimart.edu",
+      name: "Default User",
+      password: "placeholder",
+      avatar: null,
+    };
+    this.users.set(defaultUser.id, defaultUser);
   }
 
   async getUser(id: string): Promise<User | undefined> {

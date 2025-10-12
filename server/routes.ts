@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertItemSchema, insertUserSchema } from "@shared/schema";
 import multer from "multer";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
 
 const s3Client = new S3Client({
@@ -19,6 +19,34 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  app.get("/api/object-storage/:filename", async (req, res) => {
+    try {
+      const publicPath = process.env.PUBLIC_OBJECT_SEARCH_PATHS?.split(',')[0] || 'public';
+      const key = `${publicPath}/${req.params.filename}`;
+      
+      const command = new GetObjectCommand({
+        Bucket: process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID,
+        Key: key,
+      });
+      
+      const response = await s3Client.send(command);
+      
+      if (response.ContentType) {
+        res.setHeader('Content-Type', response.ContentType);
+      }
+      
+      if (response.Body) {
+        const stream = response.Body as any;
+        stream.pipe(res);
+      } else {
+        res.status(404).json({ message: "File not found" });
+      }
+    } catch (error) {
+      console.error("Error fetching file:", error);
+      res.status(404).json({ message: "File not found" });
+    }
+  });
+
   app.get("/api/items", async (req, res) => {
     try {
       const items = await storage.getAllItems();
@@ -48,8 +76,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const imageUrls: string[] = [];
 
       if (files && files.length > 0) {
+        const publicPath = process.env.PUBLIC_OBJECT_SEARCH_PATHS?.split(',')[0] || 'public';
+        
         for (const file of files) {
-          const key = `${process.env.PRIVATE_OBJECT_DIR}/${randomUUID()}-${file.originalname}`;
+          const fileName = `${randomUUID()}-${file.originalname}`;
+          const key = `${publicPath}/${fileName}`;
           
           await s3Client.send(
             new PutObjectCommand({
@@ -60,7 +91,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })
           );
 
-          imageUrls.push(key);
+          const publicUrl = `/api/object-storage/${fileName}`;
+          imageUrls.push(publicUrl);
         }
       }
 

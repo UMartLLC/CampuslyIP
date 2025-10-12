@@ -6,12 +6,69 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 const CATEGORIES = ["Electronics", "Textbooks", "Furniture", "Clothing", "Sports", "Other"];
 const CONDITIONS = ["new", "like-new", "good", "fair"];
 
+const formSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  price: z.string().min(0.01, "Price must be greater than 0"),
+  category: z.string().min(1, "Category is required"),
+  condition: z.string().min(1, "Condition is required"),
+  contact: z.string().optional(),
+});
+
 export default function SellPage() {
   const [images, setImages] = useState<File[]>([]);
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      price: "",
+      category: "",
+      condition: "",
+      contact: "",
+    },
+  });
+
+  const createItemMutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      const response = await fetch('/api/items', {
+        method: 'POST',
+        body: data,
+      });
+      if (!response.ok) throw new Error('Failed to create item');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/items'] });
+      toast({
+        title: "Success!",
+        description: "Your item has been listed for sale.",
+      });
+      setLocation('/items');
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to list item. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -19,10 +76,21 @@ export default function SellPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Submitting item...');
-  };
+  const handleSubmit = form.handleSubmit((data) => {
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('description', data.description);
+    formData.append('price', data.price);
+    formData.append('category', data.category);
+    formData.append('condition', data.condition);
+    formData.append('sellerId', 'temp-user-id');
+    
+    images.forEach((image) => {
+      formData.append('images', image);
+    });
+
+    createItemMutation.mutate(formData);
+  });
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -32,103 +100,151 @@ export default function SellPage() {
           <CardDescription>List your item for sale or set a starting bid price</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Image Upload */}
-            <div className="space-y-2">
-              <Label htmlFor="images">Item Images</Label>
-              <div className="border-2 border-dashed rounded-md p-8 text-center hover-elevate cursor-pointer">
-                <input
-                  id="images"
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  data-testid="input-images"
-                />
-                <label htmlFor="images" className="cursor-pointer">
-                  <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Click to upload images (up to 5)
-                  </p>
-                  {images.length > 0 && (
-                    <p className="text-sm text-primary mt-2">
-                      {images.length} image{images.length > 1 ? 's' : ''} selected
-                    </p>
-                  )}
-                </label>
-              </div>
-            </div>
-
-            {/* Title */}
-            <div className="space-y-2">
-              <Label htmlFor="title">Item Title</Label>
-              <Input id="title" placeholder="e.g., Calculus Textbook 8th Edition" data-testid="input-title" />
-            </div>
-
-            {/* Category */}
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select>
-                <SelectTrigger id="category" data-testid="select-category">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat.toLowerCase()}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Condition */}
-            <div className="space-y-2">
-              <Label htmlFor="condition">Condition</Label>
-              <Select>
-                <SelectTrigger id="condition" data-testid="select-condition">
-                  <SelectValue placeholder="Select condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONDITIONS.map((cond) => (
-                    <SelectItem key={cond} value={cond}>
-                      {cond.charAt(0).toUpperCase() + cond.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Price */}
-            <div className="grid grid-cols-2 gap-4">
+          <Form {...form}>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Image Upload */}
               <div className="space-y-2">
-                <Label htmlFor="price">Price / Starting Bid ($)</Label>
-                <Input id="price" type="number" step="0.01" placeholder="0.00" data-testid="input-price" />
+                <Label htmlFor="images">Item Images</Label>
+                <div className="border-2 border-dashed rounded-md p-8 text-center hover-elevate cursor-pointer">
+                  <input
+                    id="images"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    data-testid="input-images"
+                  />
+                  <label htmlFor="images" className="cursor-pointer">
+                    <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Click to upload images (up to 5)
+                    </p>
+                    {images.length > 0 && (
+                      <p className="text-sm text-primary mt-2">
+                        {images.length} image{images.length > 1 ? 's' : ''} selected
+                      </p>
+                    )}
+                  </label>
+                </div>
               </div>
-            </div>
 
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe your item, its condition, and any other relevant details..."
-                rows={5}
-                data-testid="textarea-description"
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Item Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Calculus Textbook 8th Edition" {...field} data-testid="input-title" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            {/* Contact Information (Optional) */}
-            <div className="space-y-2">
-              <Label htmlFor="contact">Contact Information (Optional)</Label>
-              <Input id="contact" placeholder="Phone or email" data-testid="input-contact" />
-            </div>
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-category">
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {CATEGORIES.map((cat) => (
+                          <SelectItem key={cat} value={cat.toLowerCase()}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <Button type="submit" className="w-full" data-testid="button-list-item">
-              List Item for Sale
-            </Button>
-          </form>
+              <FormField
+                control={form.control}
+                name="condition"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Condition</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-condition">
+                          <SelectValue placeholder="Select condition" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {CONDITIONS.map((cond) => (
+                          <SelectItem key={cond} value={cond}>
+                            {cond.charAt(0).toUpperCase() + cond.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Price / Starting Bid ($)</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" placeholder="0.00" {...field} data-testid="input-price" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe your item, its condition, and any other relevant details..."
+                        rows={5}
+                        {...field}
+                        data-testid="textarea-description"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="contact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Information (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Phone or email" {...field} data-testid="input-contact" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit" className="w-full" disabled={createItemMutation.isPending} data-testid="button-list-item">
+                {createItemMutation.isPending ? "Listing..." : "List Item for Sale"}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>
