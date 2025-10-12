@@ -85,6 +85,7 @@ export class MemStorage implements IStorage {
       ...insertItem,
       id,
       sellerId,
+      images: insertItem.images || null,
       status: "available",
       createdAt: new Date(),
     };

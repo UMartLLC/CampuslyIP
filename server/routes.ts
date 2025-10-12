@@ -1,13 +1,141 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { insertItemSchema, insertUserSchema } from "@shared/schema";
+import multer from "multer";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { randomUUID } from "crypto";
+
+const s3Client = new S3Client({
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
+  },
+});
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  
+  app.get("/api/items", async (req, res) => {
+    try {
+      const items = await storage.getAllItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      res.status(500).json({ message: "Failed to fetch items" });
+    }
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.get("/api/items/:id", async (req, res) => {
+    try {
+      const item = await storage.getItem(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching item:", error);
+      res.status(500).json({ message: "Failed to fetch item" });
+    }
+  });
+
+  app.post("/api/items", upload.array("images", 5), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      const imageUrls: string[] = [];
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          const key = `${process.env.PRIVATE_OBJECT_DIR}/${randomUUID()}-${file.originalname}`;
+          
+          await s3Client.send(
+            new PutObjectCommand({
+              Bucket: process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID,
+              Key: key,
+              Body: file.buffer,
+              ContentType: file.mimetype,
+            })
+          );
+
+          imageUrls.push(key);
+        }
+      }
+
+      const itemData = {
+        ...req.body,
+        price: req.body.price.toString(),
+        images: imageUrls.length > 0 ? imageUrls : undefined,
+      };
+
+      const validatedItem = insertItemSchema.parse(itemData);
+      
+      const sellerId = req.body.sellerId || "temp-user-id";
+      const item = await storage.createItem(validatedItem, sellerId);
+      
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating item:", error);
+      res.status(400).json({ message: "Failed to create item", error: String(error) });
+    }
+  });
+
+  app.patch("/api/items/:id", async (req, res) => {
+    try {
+      const updates = {
+        ...req.body,
+        ...(req.body.price && { price: req.body.price.toString() }),
+      };
+      
+      const item = await storage.updateItem(req.params.id, updates);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error updating item:", error);
+      res.status(400).json({ message: "Failed to update item" });
+    }
+  });
+
+  app.delete("/api/items/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteItem(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      res.status(500).json({ message: "Failed to delete item" });
+    }
+  });
+
+  app.post("/api/users", async (req, res) => {
+    try {
+      const validatedUser = insertUserSchema.parse(req.body);
+      const user = await storage.createUser(validatedUser);
+      res.status(201).json(user);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(400).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.get("/api/users/:id", async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
 
   const httpServer = createServer(app);
 
