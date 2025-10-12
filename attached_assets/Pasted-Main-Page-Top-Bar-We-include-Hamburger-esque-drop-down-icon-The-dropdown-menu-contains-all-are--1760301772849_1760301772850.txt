@@ -1,0 +1,59 @@
+Main Page: 
+Top Bar:
+We include:
+Hamburger-esque drop-down icon
+The dropdown menu contains (all are different subpages on the main page):
+Shop By Category (new page)
+Sell Items
+Advertise (MY LOCO LOCO)
+Design your room (Under Construction)
+The UniMart logo 
+A search bar that should take up most of the center part of the top bar of the webpage
+Next to the search bar on the right will be a chat icon that takes you to the chat 
+A profile icon on the right side of the top bar that moves to the Account Page
+Keep most of the stuff the AI currently has (did a great job)
+In addition to what is currently there, add a box/section at the bottom of the home page that has:
+Contact Us
+When clicked, it will go to a DM for the support which is pinned on the direct messages
+Reporting A Concern
+Linked to Report a Concern on Account Page
+Terms and Conditions
+Also include symbols for the following social media that, when you click, will take you to our specific social media for the company:
+Instagram
+X
+Twitter
+
+Account Page (Main Page → Account Page → First Tab):
+Tabs on left hotbar
+Dashboard: Account management w/ avatar and forgot your password
+My Market (sell)
+Displays all items that are currently and formerly on the marketplace that were uploaded by the user in box format. Has sorting buttons (ie. recent to latest, cheapest to most expensive, etc.)
+My Bids (bids)
+Displays items in box format that have bids placed by the user. If the seller decides to accept a bid, notification will appear on item box. After clicking, links to DMs → a chat box will appear to allow communication between user and seller.
+My Purchases (purchased items)
+Displays all purchases in box format. Has sorting buttons (ie. recent to latest, cheapest to most expensive, etc.) to sort purchases made on the site by the user.
+My LocoLoco (Under Construction)
+Management of current advertisements (loco loco)
+Request to create new advertisement (loco loco)
+Report a Concern
+Form fill-out with Title, description, and type of concern dropdown list
+Back-end: message sent to administrator inbox for review and reply
+
+https://www.google.com/url?sa=i&url=https%3A%2F%2Fmuz.li%2Finspiration%2Fprofile-page%2F&psig=AOvVaw0h_ziI_NJWYEbFK2JUOo3r&ust=1758574676932000&source=images&cd=vfe&opi=89978449&ved=0CBMQjRxqFwoTCPiyvanf6o8DFQAAAAAdAAAAABAE 
+
+
+Direct Messages
+Platform similar to whats app/iMessages between buyers and sellers.
+Names of individuals appear on left (⅓ screen) while main chat/space takes up ⅔ of screen
+Can set up times to meet update a calendar built in to direct messages
+
+Sell
+A webpage which allows you to add the item which you want to sell, upload pictures of the items, insert a price/starting bid price for the item, and add a description for the item (optional blanks for the seller to add contact information)
+
+LocoLoco (Advertisements)
+Display in box format of advertisements (ie. club GBMs, events, roommate requests, item advertisements, etc.)
+Buttons to filter advertisements based on type (event, roommate, item, etc.)
+Item LocoLocos will have a button to directly link users to that item’s marketplace page
+Event LocoLocos have an optional button to direct users to an event/club details page
+Some LocoLocos may contain headline text and picture with no button
+Higher payment/subscription will correlate with advertisements that are at the top and/or remain on the site for longer periods of time.
