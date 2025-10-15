@@ -75,13 +75,17 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={item.seller.avatar || undefined} />
+              <AvatarImage src={item.seller.profileImageUrl || undefined} />
               <AvatarFallback className="text-xs">
-                {item.seller.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                {item.seller.firstName && item.seller.lastName 
+                  ? `${item.seller.firstName[0]}${item.seller.lastName[0]}`
+                  : item.seller.username.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <span className="text-sm text-muted-foreground" data-testid={`text-seller-${item.id}`}>
-              {item.seller.name}
+              {item.seller.firstName && item.seller.lastName 
+                ? `${item.seller.firstName} ${item.seller.lastName}`
+                : item.seller.username}
             </span>
           </div>
         </div>
@@ -104,7 +108,7 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
           onClick={(e) => {
             e.stopPropagation();
             onContact?.();
-            console.log('Contact seller:', item.seller.name);
+            console.log('Contact seller:', item.seller.username);
           }}
           data-testid={`button-contact-${item.id}`}
         >
