@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { Link } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -23,7 +23,7 @@ interface HeaderProps {
 export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +113,7 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
-                  {user?.firstName} {user?.lastName}
+                  {user?.username || `${user?.firstName} ${user?.lastName}`}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
@@ -123,7 +123,7 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.location.href = '/api/logout'} data-testid="button-logout">
+                <DropdownMenuItem onClick={() => logoutMutation.mutate()} data-testid="button-logout">
                   <LogOut className="h-4 w-4 mr-2" />
                   Log Out
                 </DropdownMenuItem>

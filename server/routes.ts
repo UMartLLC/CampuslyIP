@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertItemSchema } from "@shared/schema";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth } from "./auth";
 import multer from "multer";
 import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
@@ -19,23 +19,9 @@ const s3Client = new S3Client({
 const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup Replit Auth
-  await setupAuth(app);
-
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Setup username/password authentication
+  // Referenced from blueprint:javascript_auth_all_persistance
+  setupAuth(app);
   
   app.get("/api/object-storage/:filename", async (req, res) => {
     try {
@@ -88,7 +74,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/items", isAuthenticated, upload.array("images", 5), async (req: any, res) => {
+  app.post("/api/items", upload.array("images", 5), async (req: any, res) => {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     try {
       const files = req.files as Express.Multer.File[];
       const imageUrls: string[] = [];
@@ -123,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedItem = insertItemSchema.parse(itemData);
       
       // Use logged-in user as seller
-      const sellerId = req.user.claims.sub;
+      const sellerId = req.user.id;
       const item = await storage.createItem(validatedItem, sellerId);
       
       res.status(201).json(item);
