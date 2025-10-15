@@ -15,11 +15,13 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table for Replit Auth
-// Referenced from blueprint:javascript_log_in_with_replit
+// User storage table for username/password authentication
+// Referenced from blueprint:javascript_auth_all_persistance
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
+  username: varchar("username").notNull().unique(),
+  password: varchar("password").notNull(),
+  email: varchar("email"),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
@@ -40,13 +42,14 @@ export const items = pgTable("items", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Schema for upserting user (used by Replit Auth)
-export const upsertUserSchema = createInsertSchema(users).pick({
-  id: true,
+// Schema for inserting new user (registration)
+// Referenced from blueprint:javascript_auth_all_persistance
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
   email: true,
   firstName: true,
   lastName: true,
-  profileImageUrl: true,
 });
 
 export const insertItemSchema = createInsertSchema(items).pick({
@@ -58,9 +61,9 @@ export const insertItemSchema = createInsertSchema(items).pick({
   images: true,
 });
 
-export type UpsertUser = z.infer<typeof upsertUserSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
-export type PublicUser = Omit<User, 'id'> & { id: string };
+export type PublicUser = Omit<User, 'password'>;
 export type InsertItem = z.infer<typeof insertItemSchema>;
 export type Item = typeof items.$inferSelect;
 export type ItemWithSeller = Item & { seller: PublicUser };
