@@ -44,6 +44,7 @@ export const insertItemSchema = createInsertSchema(items).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type PublicUser = Omit<User, 'password'>;
 export type InsertItem = z.infer<typeof insertItemSchema>;
 export type Item = typeof items.$inferSelect;
-export type ItemWithSeller = Item & { seller: User };
+export type ItemWithSeller = Item & { seller: PublicUser };

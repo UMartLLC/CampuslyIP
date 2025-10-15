@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, users, items } from "@shared/schema";
+import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, users, items } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -50,9 +50,10 @@ export class DatabaseStorage implements IStorage {
       if (!row.users) {
         throw new Error(`Seller not found for item ${row.items.id}`);
       }
+      const { password, ...publicSeller } = row.users;
       return {
         ...row.items,
-        seller: row.users,
+        seller: publicSeller,
       };
     });
   }
@@ -70,9 +71,11 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Seller not found for item ${result.items.id}`);
     }
     
+    const { password, ...publicSeller } = result.users;
+    
     return {
       ...result.items,
-      seller: result.users,
+      seller: publicSeller,
     };
   }
 
