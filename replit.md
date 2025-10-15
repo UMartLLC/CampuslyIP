@@ -47,16 +47,23 @@ Preferred communication style: Simple, everyday language.
 - Multer for file upload handling
 
 **Database Layer:**
-- PostgreSQL as the primary database
+- PostgreSQL as the primary database (Neon serverless)
 - Drizzle ORM for type-safe database operations
+- DatabaseStorage implementation replacing in-memory storage
 - Neon serverless PostgreSQL driver (@neondatabase/serverless)
-- Schema-first design with Drizzle migrations
+- Schema-first design with automated Drizzle migrations (db:push)
 
 **Database Schema:**
 - **Users table**: Authentication and profile data (id, username, email, password, name, avatar)
 - **Items table**: Marketplace listings with seller references, pricing, images, categories, conditions, and status tracking
 - UUID primary keys with PostgreSQL's `gen_random_uuid()`
 - Relational integrity via foreign key constraints
+- PublicUser type excludes password field for API responses
+
+**Data Persistence:**
+- All items and users stored in PostgreSQL database
+- Default seeded user (temp-user-id) for testing
+- Seed script available at server/seed.ts
 
 **API Structure:**
 - `/api/items` - Item CRUD operations with filtering support
@@ -104,8 +111,10 @@ Preferred communication style: Simple, everyday language.
 **Security Measures:**
 - CORS configuration for API security
 - Input validation using Zod schemas
-- SQL injection protection via Drizzle ORM
+- SQL injection protection via Drizzle ORM parameterized queries
 - Environment variable management for sensitive credentials
+- Password exclusion from API responses (PublicUser type)
+- Sanitized seller data in item listings
 
 ### Key Features Architecture
 
@@ -118,11 +127,13 @@ Preferred communication style: Simple, everyday language.
 - Status tracking (available, sold, pending)
 
 **Messaging System:**
-- Real-time messaging between buyers and sellers
-- WhatsApp/iMessage-inspired interface
+- Messaging interface between buyers and sellers
+- WhatsApp/iMessage-inspired UI design
 - Pinned support conversations
+- Message sending with Enter key support
 - Built-in calendar for meetup scheduling
-- Conversation list with preview
+- Conversation list with message preview
+- Real-time message display in chat area
 
 **Advertising Platform (LocoLoco):**
 - Advertisement management dashboard
