@@ -46,15 +46,24 @@ export default function SellPage() {
 
   const createItemMutation = useMutation({
     mutationFn: async (data: FormData) => {
+      console.log('Mutation function executing...');
       const response = await fetch('/api/items', {
         method: 'POST',
         body: data,
         credentials: 'include',
       });
-      if (!response.ok) throw new Error('Failed to create item');
-      return response.json();
+      console.log('Response status:', response.status);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error('Failed to create item');
+      }
+      const result = await response.json();
+      console.log('Item created successfully:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Mutation success, invalidating queries...');
       // Invalidate all items queries (marketplace and My Market)
       queryClient.invalidateQueries({ 
         predicate: (query) => 
@@ -68,7 +77,8 @@ export default function SellPage() {
       });
       setLocation('/items');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Mutation error:', error);
       toast({
         title: "Error",
         description: "Failed to list item. Please try again.",
@@ -84,6 +94,9 @@ export default function SellPage() {
   };
 
   const handleSubmit = form.handleSubmit((data) => {
+    console.log('Creating item with data:', data);
+    console.log('Images count:', images.length);
+    
     const formData = new FormData();
     formData.append('title', data.title);
     formData.append('description', data.description);
@@ -96,6 +109,7 @@ export default function SellPage() {
       formData.append('images', image);
     });
 
+    console.log('Calling mutation...');
     createItemMutation.mutate(formData);
   });
 
