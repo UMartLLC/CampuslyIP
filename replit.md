@@ -54,11 +54,12 @@ Preferred communication style: Simple, everyday language.
 - Schema-first design with automated Drizzle migrations (db:push)
 
 **Database Schema:**
-- **Users table**: Authentication and profile data (id, username, email, password, name, avatar)
+- **Users table**: Authentication and profile data (id, username, email, password, firstName, lastName, profileImageUrl)
 - **Items table**: Marketplace listings with seller references, pricing, images, categories, conditions, and status tracking
 - UUID primary keys with PostgreSQL's `gen_random_uuid()`
 - Relational integrity via foreign key constraints
 - PublicUser type excludes password field for API responses
+- ItemWithSeller type joins items with sanitized seller data
 
 **Data Persistence:**
 - All items and users stored in PostgreSQL database
@@ -66,8 +67,10 @@ Preferred communication style: Simple, everyday language.
 - Seed script available at server/seed.ts
 
 **API Structure:**
-- `/api/items` - Item CRUD operations with filtering support (supports ?sellerId query parameter)
+- `/api/items` - Item CRUD operations with filtering support (supports ?sellerId query parameter for My Market)
+- `/api/items` POST - Authenticated item creation with image upload via multipart/form-data
 - `/public-objects/:filePath` - Public image/file retrieval from object storage
+- All authenticated endpoints include session cookies via TanStack Query default fetcher
 - Standardized error handling middleware
 - Request/response logging for API endpoints
 
@@ -145,11 +148,12 @@ Preferred communication style: Simple, everyday language.
 
 **User Account Management:**
 - Dashboard with profile settings
-- "My Market" - seller's active/past listings
+- "My Market" - seller's active/past listings (filtered by sellerId query parameter)
 - "My Bids" - bid tracking and notifications
 - "My Purchases" - purchase history with sorting
 - Report concern form with admin notification
 - Password reset functionality
+- ItemCard component displays seller info using firstName/lastName with username fallback
 
 ## External Dependencies
 
