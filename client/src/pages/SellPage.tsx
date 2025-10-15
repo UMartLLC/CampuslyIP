@@ -49,12 +49,19 @@ export default function SellPage() {
       const response = await fetch('/api/items', {
         method: 'POST',
         body: data,
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to create item');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/items'] });
+      // Invalidate all items queries (marketplace and My Market)
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          Array.isArray(query.queryKey) && 
+          typeof query.queryKey[0] === 'string' && 
+          query.queryKey[0].startsWith('/api/items')
+      });
       toast({
         title: "Success!",
         description: "Your item has been listed for sale.",
