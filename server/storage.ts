@@ -1,5 +1,6 @@
-import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, users, items } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -15,106 +16,97 @@ export interface IStorage {
   deleteItem(id: string): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private items: Map<string, Item>;
-
-  constructor() {
-    this.users = new Map();
-    this.items = new Map();
-    
-    const defaultUser: User = {
-      id: "temp-user-id",
-      username: "defaultuser",
-      email: "default@unimart.edu",
-      name: "Default User",
-      password: "placeholder",
-      avatar: null,
-    };
-    this.users.set(defaultUser.id, defaultUser);
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.email === email,
-    );
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id, avatar: insertUser.avatar || null };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async getAllItems(): Promise<ItemWithSeller[]> {
-    const items = Array.from(this.items.values());
-    const itemsWithSellers = await Promise.all(
-      items.map(async (item) => {
-        const seller = await this.getUser(item.sellerId);
-        if (!seller) {
-          throw new Error(`Seller not found for item ${item.id}`);
-        }
-        return { ...item, seller };
-      })
-    );
-    return itemsWithSellers;
+    const result = await db
+      .select()
+      .from(items)
+      .leftJoin(users, eq(items.sellerId, users.id));
+    
+    return result.map(row => {
+      if (!row.users) {
+        throw new Error(`Seller not found for item ${row.items.id}`);
+      }
+      return {
+        ...row.items,
+        seller: row.users,
+      };
+    });
   }
 
   async getItem(id: string): Promise<ItemWithSeller | undefined> {
-    const item = this.items.get(id);
-    if (!item) return undefined;
+    const [result] = await db
+      .select()
+      .from(items)
+      .leftJoin(users, eq(items.sellerId, users.id))
+      .where(eq(items.id, id));
     
-    const seller = await this.getUser(item.sellerId);
-    if (!seller) {
-      throw new Error(`Seller not found for item ${item.id}`);
+    if (!result) return undefined;
+    
+    if (!result.users) {
+      throw new Error(`Seller not found for item ${result.items.id}`);
     }
     
-    return { ...item, seller };
+    return {
+      ...result.items,
+      seller: result.users,
+    };
   }
 
   async getItemsBySeller(sellerId: string): Promise<Item[]> {
-    return Array.from(this.items.values()).filter(
-      (item) => item.sellerId === sellerId
-    );
+    return await db.select().from(items).where(eq(items.sellerId, sellerId));
   }
 
   async createItem(insertItem: InsertItem, sellerId: string): Promise<Item> {
-    const id = randomUUID();
-    const item: Item = {
-      ...insertItem,
-      id,
-      sellerId,
-      images: insertItem.images || null,
-      status: "available",
-      createdAt: new Date(),
-    };
-    this.items.set(id, item);
+    const [item] = await db
+      .insert(items)
+      .values({
+        ...insertItem,
+        sellerId,
+      })
+      .returning();
     return item;
   }
 
   async updateItem(id: string, updates: Partial<InsertItem>): Promise<Item | undefined> {
-    const item = this.items.get(id);
-    if (!item) return undefined;
-    
-    const updatedItem = { ...item, ...updates };
-    this.items.set(id, updatedItem);
-    return updatedItem;
+    const [item] = await db
+      .update(items)
+      .set(updates)
+      .where(eq(items.id, id))
+      .returning();
+    return item || undefined;
   }
 
   async deleteItem(id: string): Promise<boolean> {
-    return this.items.delete(id);
+    const result = await db
+      .delete(items)
+      .where(eq(items.id, id))
+      .returning();
+    return result.length > 0;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
