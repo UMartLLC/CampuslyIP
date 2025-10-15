@@ -7,6 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import type { Item } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +25,13 @@ import {
 
 export default function AccountPage() {
   const [activeSection, setActiveSection] = useState("dashboard");
+  const { user } = useAuth();
+
+  // Fetch user's items for My Market
+  const { data: userItems = [], isLoading: isLoadingItems } = useQuery<Item[]>({
+    queryKey: ['/api/items', { sellerId: user?.id }],
+    enabled: !!user?.id && activeSection === "market",
+  });
 
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: User },
@@ -90,11 +101,17 @@ export default function AccountPage() {
                       <CardContent className="pt-6">
                         <div className="flex flex-col items-center text-center">
                           <Avatar className="h-32 w-32 mb-4">
-                            <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" />
-                            <AvatarFallback>ST</AvatarFallback>
+                            <AvatarImage src={user?.profileImageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id}`} />
+                            <AvatarFallback>
+                              {user?.firstName?.[0]}{user?.lastName?.[0]}
+                            </AvatarFallback>
                           </Avatar>
-                          <h2 className="text-xl font-bold mb-1" data-testid="text-username">Student User</h2>
-                          <p className="text-sm text-muted-foreground mb-4" data-testid="text-email">student@university.edu</p>
+                          <h2 className="text-xl font-bold mb-1" data-testid="text-username">
+                            {user?.firstName} {user?.lastName}
+                          </h2>
+                          <p className="text-sm text-muted-foreground mb-4" data-testid="text-email">
+                            {user?.email}
+                          </p>
                         </div>
                       </CardContent>
                     </Card>
@@ -109,16 +126,16 @@ export default function AccountPage() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="name">Full Name</Label>
-                          <Input id="name" defaultValue="Student User" data-testid="input-name" />
+                          <Label htmlFor="firstName">First Name</Label>
+                          <Input id="firstName" defaultValue={user?.firstName || ""} data-testid="input-firstName" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="lastName">Last Name</Label>
+                          <Input id="lastName" defaultValue={user?.lastName || ""} data-testid="input-lastName" />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="email">Email</Label>
-                          <Input id="email" type="email" defaultValue="student@university.edu" data-testid="input-email" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="password">Change Password</Label>
-                          <Input id="password" type="password" placeholder="New password" data-testid="input-password" />
+                          <Input id="email" type="email" defaultValue={user?.email || ""} disabled data-testid="input-email" />
                         </div>
                         <Button data-testid="button-save-changes">Save Changes</Button>
                       </CardContent>
@@ -130,15 +147,62 @@ export default function AccountPage() {
 
             {/* My Market Section */}
             {activeSection === "market" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>My Market</CardTitle>
-                  <CardDescription>Items you're currently selling or have sold</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">No items listed yet. Start selling!</p>
-                </CardContent>
-              </Card>
+              <>
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground uppercase tracking-wide mb-1">YOUR LISTINGS</p>
+                  <h1 className="text-2xl font-bold">My Market</h1>
+                </div>
+                
+                {isLoadingItems ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Loading your items...</p>
+                  </div>
+                ) : userItems.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <p className="text-muted-foreground">No items listed yet. Start selling!</p>
+                      <Button className="mt-4" onClick={() => window.location.href = '/sell'} data-testid="button-start-selling">
+                        List Your First Item
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {userItems.map((item) => (
+                      <Card key={item.id} className="overflow-hidden" data-testid={`card-item-${item.id}`}>
+                        {item.images && item.images.length > 0 && (
+                          <div className="aspect-video overflow-hidden">
+                            <img 
+                              src={item.images[0]} 
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-lg">{item.title}</CardTitle>
+                            <Badge variant={item.status === 'available' ? 'default' : 'secondary'}>
+                              {item.status}
+                            </Badge>
+                          </div>
+                          <CardDescription className="line-clamp-2">
+                            {item.description}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex justify-between items-center">
+                            <span className="text-2xl font-bold">${item.price}</span>
+                            <Button variant="outline" size="sm" data-testid={`button-view-item-${item.id}`}>
+                              View
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
             {/* My Bids Section */}
