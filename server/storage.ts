@@ -1,11 +1,16 @@
-import { type User, type UpsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, users, items } from "@shared/schema";
+// Referenced from blueprint:javascript_auth_all_persistance
+import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, users, items } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
   
   getAllItems(): Promise<ItemWithSeller[]>;
   getItem(id: string): Promise<ItemWithSeller | undefined>;
@@ -13,30 +18,35 @@ export interface IStorage {
   createItem(item: InsertItem, sellerId: string): Promise<Item>;
   updateItem(id: string, item: Partial<InsertItem>): Promise<Item | undefined>;
   deleteItem(id: string): Promise<boolean>;
+  
+  sessionStore: session.Store;
 }
 
 export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({ 
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: false,
+      tableName: "sessions",
+    });
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
+  async createUser(userData: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
       .returning();
     return user;
   }
