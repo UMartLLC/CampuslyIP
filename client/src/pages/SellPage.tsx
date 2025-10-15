@@ -83,7 +83,7 @@ export default function SellPage() {
     formData.append('price', data.price);
     formData.append('category', data.category);
     formData.append('condition', data.condition);
-    formData.append('sellerId', 'temp-user-id');
+    // sellerId is now automatically set from authenticated user session
     
     images.forEach((image) => {
       formData.append('images', image);
