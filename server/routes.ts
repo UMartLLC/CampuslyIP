@@ -4,17 +4,7 @@ import { storage } from "./storage";
 import { insertItemSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 import multer from "multer";
-import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { randomUUID } from "crypto";
-
-const s3Client = new S3Client({
-  region: "auto",
-  endpoint: process.env.R2_ENDPOINT,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
-  },
-});
+import { ObjectStorageService } from "./objectStorage";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -23,36 +13,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Referenced from blueprint:javascript_auth_all_persistance
   setupAuth(app);
   
-  app.get("/api/object-storage/:filename", async (req, res) => {
+  // Serve public objects from object storage
+  // Referenced from blueprint:javascript_object_storage
+  app.get("/public-objects/:filePath(*)", async (req, res) => {
+    const filePath = req.params.filePath;
+    const objectStorageService = new ObjectStorageService();
     try {
-      const publicPath = process.env.PUBLIC_OBJECT_SEARCH_PATHS?.split(',')[0] || 'public';
-      const key = `${publicPath}/${req.params.filename}`;
-      
-      const command = new GetObjectCommand({
-        Bucket: process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID,
-        Key: key,
-      });
-      
-      const response = await s3Client.send(command);
-      
-      if (response.ContentType) {
-        res.setHeader('Content-Type', response.ContentType);
+      const file = await objectStorageService.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "File not found" });
       }
-      
-      if (response.Body) {
-        const stream = response.Body as any;
-        stream.pipe(res);
-      } else {
-        res.status(404).json({ message: "File not found" });
-      }
+      objectStorageService.downloadObject(file, res);
     } catch (error) {
-      console.error("Error fetching file:", error);
-      res.status(404).json({ message: "File not found" });
+      console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   });
 
   app.get("/api/items", async (req, res) => {
     try {
+      const sellerId = req.query.sellerId as string | undefined;
+      
+      if (sellerId) {
+        const items = await storage.getItemsBySeller(sellerId);
+        return res.json(items);
+      }
+      
       const items = await storage.getAllItems();
       res.json(items);
     } catch (error) {
@@ -83,22 +69,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const imageUrls: string[] = [];
 
       if (files && files.length > 0) {
-        const publicPath = process.env.PUBLIC_OBJECT_SEARCH_PATHS?.split(',')[0] || 'public';
+        const objectStorageService = new ObjectStorageService();
         
         for (const file of files) {
-          const fileName = `${randomUUID()}-${file.originalname}`;
-          const key = `${publicPath}/${fileName}`;
-          
-          await s3Client.send(
-            new PutObjectCommand({
-              Bucket: process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID,
-              Key: key,
-              Body: file.buffer,
-              ContentType: file.mimetype,
-            })
+          const publicUrl = await objectStorageService.uploadFile(
+            file.buffer,
+            file.originalname,
+            file.mimetype
           );
-
-          const publicUrl = `/api/object-storage/${fileName}`;
           imageUrls.push(publicUrl);
         }
       }

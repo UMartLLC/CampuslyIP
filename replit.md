@@ -66,24 +66,25 @@ Preferred communication style: Simple, everyday language.
 - Seed script available at server/seed.ts
 
 **API Structure:**
-- `/api/items` - Item CRUD operations with filtering support
-- `/api/object-storage/:filename` - Image/file retrieval
+- `/api/items` - Item CRUD operations with filtering support (supports ?sellerId query parameter)
+- `/public-objects/:filePath` - Public image/file retrieval from object storage
 - Standardized error handling middleware
 - Request/response logging for API endpoints
 
 ### File Storage
 
-**Object Storage (AWS S3/Cloudflare R2):**
-- AWS SDK v3 for S3-compatible object storage
-- Cloudflare R2 as the storage backend
+**Object Storage (Replit/Google Cloud Storage):**
+- Google Cloud Storage SDK (@google-cloud/storage)
+- Replit sidecar endpoint authentication for GCS
 - Public/private path separation for access control
+- ObjectStorageService in server/objectStorage.ts for all storage operations
 - Image upload with multipart form data
 - Streaming file downloads for efficient delivery
 
 **Image Handling:**
 - Multiple image support per item listing
 - Array-based image storage in database
-- Direct S3/R2 URLs for image references
+- Public object URLs served via /public-objects/:filePath route
 
 ### Payment Integration
 
@@ -103,10 +104,11 @@ Preferred communication style: Simple, everyday language.
 ### Authentication & Security
 
 **Authentication Strategy:**
-- Session-based authentication with PostgreSQL session store
-- Password hashing (implementation in progress)
+- Session-based authentication with PostgreSQL session store (connect-pg-simple)
+- Password hashing using Node.js crypto scrypt with salt
+- Passport.js local strategy for username/password authentication
 - User profile management with avatar support
-- Credential-based login system
+- Credential-based login and registration system
 
 **Security Measures:**
 - CORS configuration for API security
@@ -152,12 +154,12 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 **Cloud Services:**
-- **Cloudflare R2**: Object storage for images and files (S3-compatible API)
+- **Replit Object Storage**: Google Cloud Storage-based file storage via Replit sidecar
 - **Neon**: Serverless PostgreSQL database hosting
 - **Stripe**: Payment processing and checkout
 
 **Third-Party APIs:**
-- AWS SDK Client S3 for R2 storage operations
+- Google Cloud Storage SDK for object storage operations
 - Stripe SDK for payment processing
 
 **UI Libraries:**

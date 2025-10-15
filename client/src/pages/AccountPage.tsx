@@ -29,7 +29,7 @@ export default function AccountPage() {
 
   // Fetch user's items for My Market
   const { data: userItems = [], isLoading: isLoadingItems } = useQuery<Item[]>({
-    queryKey: ['/api/items', { sellerId: user?.id }],
+    queryKey: [`/api/items?sellerId=${user?.id}`],
     enabled: !!user?.id && activeSection === "market",
   });
 
