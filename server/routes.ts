@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertItemSchema, insertUserSchema } from "@shared/schema";
+import { insertItemSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import multer from "multer";
 import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
@@ -18,6 +19,23 @@ const s3Client = new S3Client({
 const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup Replit Auth
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
   
   app.get("/api/object-storage/:filename", async (req, res) => {
     try {
@@ -70,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/items", upload.array("images", 5), async (req, res) => {
+  app.post("/api/items", isAuthenticated, upload.array("images", 5), async (req: any, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       const imageUrls: string[] = [];
@@ -104,7 +122,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const validatedItem = insertItemSchema.parse(itemData);
       
-      const sellerId = req.body.sellerId || "temp-user-id";
+      // Use logged-in user as seller
+      const sellerId = req.user.claims.sub;
       const item = await storage.createItem(validatedItem, sellerId);
       
       res.status(201).json(item);
@@ -142,17 +161,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting item:", error);
       res.status(500).json({ message: "Failed to delete item" });
-    }
-  });
-
-  app.post("/api/users", async (req, res) => {
-    try {
-      const validatedUser = insertUserSchema.parse(req.body);
-      const user = await storage.createUser(validatedUser);
-      res.status(201).json(user);
-    } catch (error) {
-      console.error("Error creating user:", error);
-      res.status(400).json({ message: "Failed to create user" });
     }
   });
 

@@ -4,8 +4,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider, useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import LandingPage from "@/pages/LandingPage";
 import Welcome from "@/pages/Welcome";
 import ItemsPage from "@/pages/ItemsPage";
 import AddItemPage from "@/pages/AddItemPage";
@@ -19,6 +21,19 @@ import TermsPage from "@/pages/TermsPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Show landing page while loading or not authenticated
+  if (isLoading || !isAuthenticated) {
+    return (
+      <Switch>
+        <Route path="/" component={LandingPage} />
+        <Route component={LandingPage} />
+      </Switch>
+    );
+  }
+
+  // Show protected routes when authenticated
   return (
     <Switch>
       <Route path="/" component={Welcome} />
@@ -38,18 +53,21 @@ function Router() {
 
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
+  const { isAuthenticated, isLoading } = useAuth();
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header 
-        onSearch={(query) => console.log('Search:', query)}
-        onToggleTheme={toggleTheme}
-        isDark={theme === 'dark'}
-      />
+      {!isLoading && isAuthenticated && (
+        <Header 
+          onSearch={(query) => console.log('Search:', query)}
+          onToggleTheme={toggleTheme}
+          isDark={theme === 'dark'}
+        />
+      )}
       <main className="flex-1">
         <Router />
       </main>
-      <Footer />
+      {!isLoading && isAuthenticated && <Footer />}
     </div>
   );
 }

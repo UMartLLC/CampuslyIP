@@ -11,14 +11,12 @@ async function seed() {
       .where(eq(users.email, "default@unimart.edu"));
 
     if (!existingUser) {
-      // Create default user
+      // Create default test user for development
       await db.insert(users).values({
-        id: "temp-user-id",
-        username: "defaultuser",
         email: "default@unimart.edu",
-        name: "Default User",
-        password: "placeholder", // In production, this would be hashed
-        avatar: null,
+        firstName: "Default",
+        lastName: "User",
+        profileImageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=default",
       });
       console.log("✓ Default user seeded successfully");
     } else {

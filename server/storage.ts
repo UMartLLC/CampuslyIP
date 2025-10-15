@@ -1,12 +1,11 @@
-import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, users, items } from "@shared/schema";
+import { type User, type UpsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, users, items } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
   
   getAllItems(): Promise<ItemWithSeller[]>;
   getItem(id: string): Promise<ItemWithSeller | undefined>;
@@ -22,20 +21,22 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
-  }
-
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
       .returning();
     return user;
   }
@@ -50,7 +51,7 @@ export class DatabaseStorage implements IStorage {
       if (!row.users) {
         throw new Error(`Seller not found for item ${row.items.id}`);
       }
-      const { password, ...publicSeller } = row.users;
+      const publicSeller: PublicUser = row.users;
       return {
         ...row.items,
         seller: publicSeller,
@@ -71,7 +72,7 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Seller not found for item ${result.items.id}`);
     }
     
-    const { password, ...publicSeller } = result.users;
+    const publicSeller: PublicUser = result.users;
     
     return {
       ...result.items,
