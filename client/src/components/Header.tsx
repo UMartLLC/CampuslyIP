@@ -1,9 +1,18 @@
-import { Search, User, ShoppingBag, Menu, Moon, Sun, MessageCircle } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, Moon, Sun, MessageCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -14,6 +23,7 @@ interface HeaderProps {
 export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,11 +104,31 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
             <Button variant="ghost" size="icon" onClick={onToggleTheme} data-testid="button-theme">
               {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
-            <Link href="/account">
-              <Button variant="ghost" size="icon" data-testid="button-profile">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" data-testid="button-profile">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>
+                  {user?.firstName} {user?.lastName}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/account" data-testid="link-account">
+                    <User className="h-4 w-4 mr-2" />
+                    My Account
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => window.location.href = '/api/logout'} data-testid="button-logout">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
