@@ -50,27 +50,12 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
-        console.log('[AUTH] Login attempt for username:', username);
         const user = await storage.getUserByUsername(username);
-        console.log('[AUTH] User found:', !!user);
-        
-        if (!user) {
-          console.log('[AUTH] User not found');
+        if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false, { message: "Invalid username or password" });
         }
-        
-        const passwordMatch = await comparePasswords(password, user.password);
-        console.log('[AUTH] Password match:', passwordMatch);
-        
-        if (!passwordMatch) {
-          console.log('[AUTH] Password mismatch');
-          return done(null, false, { message: "Invalid username or password" });
-        }
-        
-        console.log('[AUTH] Login successful for:', username);
         return done(null, user);
       } catch (error) {
-        console.error('[AUTH] Login error:', error);
         return done(error);
       }
     }),
@@ -116,6 +101,12 @@ export function setupAuth(app: Express) {
       }
       req.login(user, (err) => {
         if (err) return next(err);
+        
+        // Handle "Remember Me" - extend session duration
+        if (req.body.rememberMe) {
+          req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+        }
+        
         const { password, ...userWithoutPassword } = user;
         res.status(200).json(userWithoutPassword);
       });
@@ -135,5 +126,30 @@ export function setupAuth(app: Express) {
     }
     const { password, ...userWithoutPassword } = req.user;
     res.json(userWithoutPassword);
+  });
+
+  app.post("/api/reset-password", async (req, res, next) => {
+    try {
+      const { username, newPassword } = req.body;
+      
+      if (!username || !newPassword) {
+        return res.status(400).send("Username and new password are required");
+      }
+      
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(404).send("User not found");
+      }
+      
+      // Hash the new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update the user's password
+      await storage.updateUserPassword(user.id, hashedPassword);
+      
+      res.status(200).json({ message: "Password reset successful" });
+    } catch (error) {
+      next(error);
+    }
   });
 }

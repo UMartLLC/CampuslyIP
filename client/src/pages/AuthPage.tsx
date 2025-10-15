@@ -7,7 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ShoppingBag } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -15,7 +19,7 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
 
   // Form states
-  const [loginData, setLoginData] = useState({ username: "", password: "" });
+  const [loginData, setLoginData] = useState({ username: "", password: "", rememberMe: false });
   const [registerData, setRegisterData] = useState({
     username: "",
     password: "",
@@ -23,6 +27,9 @@ export default function AuthPage() {
     firstName: "",
     lastName: "",
   });
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [resetData, setResetData] = useState({ username: "", newPassword: "", confirmPassword: "" });
+  const { toast } = useToast();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -39,6 +46,52 @@ export default function AuthPage() {
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     registerMutation.mutate(registerData);
+  };
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (data: { username: string; newPassword: string }) => {
+      const response = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Password Reset Successful",
+        description: "You can now log in with your new password.",
+      });
+      setResetPasswordOpen(false);
+      setResetData({ username: "", newPassword: "", confirmPassword: "" });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Password Reset Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (resetData.newPassword !== resetData.confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure both passwords are the same.",
+        variant: "destructive",
+      });
+      return;
+    }
+    resetPasswordMutation.mutate({
+      username: resetData.username,
+      newPassword: resetData.newPassword,
+    });
   };
 
   return (
@@ -86,6 +139,72 @@ export default function AuthPage() {
                         required
                         data-testid="input-login-password"
                       />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="remember-me"
+                          checked={loginData.rememberMe}
+                          onCheckedChange={(checked) => setLoginData({ ...loginData, rememberMe: checked as boolean })}
+                          data-testid="checkbox-remember-me"
+                        />
+                        <Label htmlFor="remember-me" className="text-sm font-normal cursor-pointer">
+                          Remember me
+                        </Label>
+                      </div>
+                      <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="link" className="px-0 text-sm" data-testid="button-forgot-password">
+                            Forgot password?
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Reset Password</DialogTitle>
+                            <DialogDescription>
+                              Enter your username and choose a new password.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <form onSubmit={handleResetPassword} className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="reset-username">Username</Label>
+                              <Input
+                                id="reset-username"
+                                type="text"
+                                value={resetData.username}
+                                onChange={(e) => setResetData({ ...resetData, username: e.target.value })}
+                                required
+                                data-testid="input-reset-username"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="reset-password">New Password</Label>
+                              <Input
+                                id="reset-password"
+                                type="password"
+                                value={resetData.newPassword}
+                                onChange={(e) => setResetData({ ...resetData, newPassword: e.target.value })}
+                                required
+                                data-testid="input-reset-password"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="reset-confirm-password">Confirm New Password</Label>
+                              <Input
+                                id="reset-confirm-password"
+                                type="password"
+                                value={resetData.confirmPassword}
+                                onChange={(e) => setResetData({ ...resetData, confirmPassword: e.target.value })}
+                                required
+                                data-testid="input-reset-confirm-password"
+                              />
+                            </div>
+                            <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending} data-testid="button-reset-submit">
+                              {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
+                            </Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                     <Button type="submit" className="w-full" disabled={loginMutation.isPending} data-testid="button-login-submit">
                       {loginMutation.isPending ? "Logging in..." : "Log In"}
