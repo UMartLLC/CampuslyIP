@@ -55,9 +55,10 @@ Preferred communication style: Simple, everyday language.
 
 **Database Schema:**
 - **Users table**: Authentication and profile data (id, username, email, password, firstName, lastName, profileImageUrl)
-- **Items table**: Marketplace listings with seller references, pricing, images, categories, conditions, and status tracking
+- **Items table**: Marketplace listings with seller references, pricing, images, categories, conditions, status tracking, and soft-delete support (deletedAt field)
 - UUID primary keys with PostgreSQL's `gen_random_uuid()`
 - Relational integrity via foreign key constraints
+- Soft delete implementation for items (deletedAt timestamp instead of hard delete)
 - PublicUser type excludes password field for API responses
 - ItemWithSeller type joins items with sanitized seller data
 
@@ -67,8 +68,10 @@ Preferred communication style: Simple, everyday language.
 - Seed script available at server/seed.ts
 
 **API Structure:**
-- `/api/items` - Item CRUD operations with filtering support (supports ?sellerId query parameter for My Market)
+- `/api/items` - Item CRUD operations with filtering support (supports ?sellerId query parameter for My Market, ?includeDeleted=true for Items History)
 - `/api/items` POST - Authenticated item creation with image upload via multipart/form-data
+- `/api/items/:id` DELETE - Soft-delete item (sets deletedAt timestamp)
+- `/api/items/:id/repost` POST - Restore deleted item (clears deletedAt, sets status to 'available')
 - `/public-objects/:filePath` - Public image/file retrieval from object storage
 - All authenticated endpoints include session cookies via TanStack Query default fetcher
 - Standardized error handling middleware
@@ -148,15 +151,21 @@ Preferred communication style: Simple, everyday language.
 
 **User Account Management:**
 - Dashboard with profile settings
-- "My Market" - seller's active/past listings with full management capabilities
-  - Filtered by sellerId query parameter
+- "My Market" - seller's active listings with full management capabilities
+  - Shows only non-deleted, available items
   - Always-visible "Sell Item" button for adding new listings
-  - Delete functionality with confirmation dialog for removing items
+  - Delete functionality with confirmation dialog (soft-deletes items)
   - Empty state with call-to-action when no items listed
+- "Items History" - comprehensive view of all items ever posted
+  - Categorized by status: Available, Sold, Deleted
+  - Shows item counts for each category
+  - Deleted items displayed with grayscale images and reduced opacity
+  - Repost functionality to restore deleted items back to marketplace
+  - Includes all items regardless of deletedAt status
 - "My Bids" - bid tracking and notifications
 - "My Purchases" - purchase history with sorting
 - Report concern form with admin notification
-- Password reset functionality
+- Password reset functionality via username
 - Remember Me checkbox for extended session (30 days)
 - ItemCard component displays seller info using firstName/lastName with username fallback
 
