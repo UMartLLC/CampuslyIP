@@ -40,6 +40,7 @@ export const items = pgTable("items", {
   sellerId: varchar("seller_id").notNull().references(() => users.id),
   status: text("status").notNull().default("available"), // "available", "sold", "pending"
   createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 // Schema for inserting new user (registration)

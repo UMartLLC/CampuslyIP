@@ -1,7 +1,7 @@
 // Referenced from blueprint:javascript_auth_all_persistance
 import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, users, items } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 
@@ -16,9 +16,11 @@ export interface IStorage {
   getAllItems(): Promise<ItemWithSeller[]>;
   getItem(id: string): Promise<ItemWithSeller | undefined>;
   getItemsBySeller(sellerId: string): Promise<Item[]>;
+  getAllItemsBySeller(sellerId: string): Promise<Item[]>;
   createItem(item: InsertItem, sellerId: string): Promise<Item>;
   updateItem(id: string, item: Partial<InsertItem>): Promise<Item | undefined>;
   deleteItem(id: string): Promise<boolean>;
+  repostItem(id: string): Promise<Item | undefined>;
   
   sessionStore: session.Store;
 }
@@ -63,7 +65,8 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .select()
       .from(items)
-      .leftJoin(users, eq(items.sellerId, users.id));
+      .leftJoin(users, eq(items.sellerId, users.id))
+      .where(isNull(items.deletedAt));
     
     return result.map(row => {
       if (!row.users) {
@@ -99,6 +102,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getItemsBySeller(sellerId: string): Promise<Item[]> {
+    return await db.select().from(items).where(eq(items.sellerId, sellerId)).where(isNull(items.deletedAt));
+  }
+
+  async getAllItemsBySeller(sellerId: string): Promise<Item[]> {
     return await db.select().from(items).where(eq(items.sellerId, sellerId));
   }
 
@@ -124,10 +131,20 @@ export class DatabaseStorage implements IStorage {
 
   async deleteItem(id: string): Promise<boolean> {
     const result = await db
-      .delete(items)
+      .update(items)
+      .set({ deletedAt: new Date() })
       .where(eq(items.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  async repostItem(id: string): Promise<Item | undefined> {
+    const [item] = await db
+      .update(items)
+      .set({ deletedAt: null, status: 'available' })
+      .where(eq(items.id, id))
+      .returning();
+    return item || undefined;
   }
 }
 
