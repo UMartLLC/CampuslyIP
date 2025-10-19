@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle } from "lucide-react";
+import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Plus } from "lucide-react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import type { Item } from "@shared/schema";
@@ -26,6 +27,7 @@ import {
 export default function AccountPage() {
   const [activeSection, setActiveSection] = useState("dashboard");
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   // Fetch user's items for My Market
   const { data: userItems = [], isLoading: isLoadingItems } = useQuery<Item[]>({
@@ -148,9 +150,15 @@ export default function AccountPage() {
             {/* My Market Section */}
             {activeSection === "market" && (
               <>
-                <div className="mb-4">
-                  <p className="text-sm text-muted-foreground uppercase tracking-wide mb-1">YOUR LISTINGS</p>
-                  <h1 className="text-2xl font-bold">My Market</h1>
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide mb-1">YOUR LISTINGS</p>
+                    <h1 className="text-2xl font-bold">My Market</h1>
+                  </div>
+                  <Button onClick={() => setLocation('/sell')} data-testid="button-sell-item">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Sell Item
+                  </Button>
                 </div>
                 
                 {isLoadingItems ? (
@@ -160,8 +168,11 @@ export default function AccountPage() {
                 ) : userItems.length === 0 ? (
                   <Card>
                     <CardContent className="py-8 text-center">
-                      <p className="text-muted-foreground">No items listed yet. Start selling!</p>
-                      <Button className="mt-4" onClick={() => window.location.href = '/sell'} data-testid="button-start-selling">
+                      <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-lg font-medium mb-2">No items listed yet</p>
+                      <p className="text-muted-foreground mb-4">Start selling by creating your first listing!</p>
+                      <Button onClick={() => setLocation('/sell')} data-testid="button-start-selling">
+                        <Plus className="h-4 w-4 mr-2" />
                         List Your First Item
                       </Button>
                     </CardContent>
@@ -180,7 +191,7 @@ export default function AccountPage() {
                           </div>
                         )}
                         <CardHeader>
-                          <div className="flex justify-between items-start">
+                          <div className="flex justify-between items-start gap-2">
                             <CardTitle className="text-lg">{item.title}</CardTitle>
                             <Badge variant={item.status === 'available' ? 'default' : 'secondary'}>
                               {item.status}
