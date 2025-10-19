@@ -33,9 +33,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/items", async (req, res) => {
     try {
       const sellerId = req.query.sellerId as string | undefined;
+      const includeDeleted = req.query.includeDeleted === 'true';
       
       if (sellerId) {
-        const items = await storage.getItemsBySeller(sellerId);
+        const items = includeDeleted 
+          ? await storage.getAllItemsBySeller(sellerId)
+          : await storage.getItemsBySeller(sellerId);
         return res.json(items);
       }
       
@@ -128,6 +131,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting item:", error);
       res.status(500).json({ message: "Failed to delete item" });
+    }
+  });
+
+  app.post("/api/items/:id/repost", async (req, res) => {
+    try {
+      const item = await storage.repostItem(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error reposting item:", error);
+      res.status(500).json({ message: "Failed to repost item" });
     }
   });
 

@@ -1,7 +1,7 @@
 // Referenced from blueprint:javascript_auth_all_persistance
 import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, users, items } from "@shared/schema";
 import { db } from "./db";
-import { eq, isNull } from "drizzle-orm";
+import { eq, isNull, and } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 
@@ -102,7 +102,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getItemsBySeller(sellerId: string): Promise<Item[]> {
-    return await db.select().from(items).where(eq(items.sellerId, sellerId)).where(isNull(items.deletedAt));
+    return await db.select().from(items).where(and(eq(items.sellerId, sellerId), isNull(items.deletedAt)));
   }
 
   async getAllItemsBySeller(sellerId: string): Promise<Item[]> {

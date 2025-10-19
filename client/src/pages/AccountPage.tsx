@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Plus, Trash2 } from "lucide-react";
+import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Plus, Trash2, History, RotateCcw } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -49,6 +49,12 @@ export default function AccountPage() {
     enabled: !!user?.id && activeSection === "market",
   });
 
+  // Fetch all user's items for history (including deleted)
+  const { data: allUserItems = [], isLoading: isLoadingHistory } = useQuery<Item[]>({
+    queryKey: [`/api/items?sellerId=${user?.id}&includeDeleted=true`],
+    enabled: !!user?.id && activeSection === "history",
+  });
+
   const deleteItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
       const response = await fetch(`/api/items/${itemId}`, {
@@ -80,9 +86,42 @@ export default function AccountPage() {
     },
   });
 
+  const repostItemMutation = useMutation({
+    mutationFn: async (itemId: string) => {
+      const response = await fetch(`/api/items/${itemId}/repost`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to repost item');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          Array.isArray(query.queryKey) && 
+          typeof query.queryKey[0] === 'string' && 
+          query.queryKey[0].startsWith('/api/items')
+      });
+      toast({
+        title: "Item Reposted",
+        description: "Your listing is now active again.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to repost item. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: User },
     { id: "market", label: "My Market", icon: Package },
+    { id: "history", label: "Items History", icon: History },
     { id: "bids", label: "My Bids", icon: Gavel },
     { id: "purchases", label: "My Purchases", icon: ShoppingCart },
     { id: "locoloco", label: "My LocoLoco", icon: Megaphone },
@@ -286,6 +325,157 @@ export default function AccountPage() {
                         </CardContent>
                       </Card>
                     ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Items History Section */}
+            {activeSection === "history" && (
+              <>
+                <div className="mb-6">
+                  <div>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide mb-1">ALL YOUR LISTINGS</p>
+                    <h1 className="text-2xl font-bold">Items History</h1>
+                    <p className="text-sm text-muted-foreground mt-2">View all items you've posted, including sold and deleted items. You can repost deleted items anytime.</p>
+                  </div>
+                </div>
+                
+                {isLoadingHistory ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Loading your history...</p>
+                  </div>
+                ) : allUserItems.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <History className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-lg font-medium mb-2">No items in history</p>
+                      <p className="text-muted-foreground mb-4">Items you post will appear here</p>
+                      <Button onClick={() => setLocation('/sell')} data-testid="button-start-selling-history">
+                        <Plus className="h-4 w-4 mr-2" />
+                        List Your First Item
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Available Items */}
+                    {allUserItems.filter(item => !item.deletedAt && item.status === 'available').length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 text-green-600 dark:text-green-400">Available ({allUserItems.filter(item => !item.deletedAt && item.status === 'available').length})</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {allUserItems.filter(item => !item.deletedAt && item.status === 'available').map((item) => (
+                            <Card key={item.id} className="overflow-hidden" data-testid={`card-history-item-${item.id}`}>
+                              {item.images && item.images.length > 0 && (
+                                <div className="aspect-video overflow-hidden">
+                                  <img 
+                                    src={item.images[0]} 
+                                    alt={item.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <CardHeader>
+                                <div className="flex justify-between items-start gap-2">
+                                  <CardTitle className="text-lg">{item.title}</CardTitle>
+                                  <Badge variant="default">Available</Badge>
+                                </div>
+                                <CardDescription className="line-clamp-2">
+                                  {item.description}
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xl font-bold">${item.price}</span>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Sold Items */}
+                    {allUserItems.filter(item => !item.deletedAt && item.status === 'sold').length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 text-blue-600 dark:text-blue-400">Sold ({allUserItems.filter(item => !item.deletedAt && item.status === 'sold').length})</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {allUserItems.filter(item => !item.deletedAt && item.status === 'sold').map((item) => (
+                            <Card key={item.id} className="overflow-hidden opacity-75" data-testid={`card-history-item-${item.id}`}>
+                              {item.images && item.images.length > 0 && (
+                                <div className="aspect-video overflow-hidden">
+                                  <img 
+                                    src={item.images[0]} 
+                                    alt={item.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <CardHeader>
+                                <div className="flex justify-between items-start gap-2">
+                                  <CardTitle className="text-lg">{item.title}</CardTitle>
+                                  <Badge variant="secondary">Sold</Badge>
+                                </div>
+                                <CardDescription className="line-clamp-2">
+                                  {item.description}
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xl font-bold">${item.price}</span>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Deleted Items */}
+                    {allUserItems.filter(item => item.deletedAt).length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 text-muted-foreground">Deleted ({allUserItems.filter(item => item.deletedAt).length})</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {allUserItems.filter(item => item.deletedAt).map((item) => (
+                            <Card key={item.id} className="overflow-hidden opacity-60" data-testid={`card-history-item-${item.id}`}>
+                              {item.images && item.images.length > 0 && (
+                                <div className="aspect-video overflow-hidden">
+                                  <img 
+                                    src={item.images[0]} 
+                                    alt={item.title}
+                                    className="w-full h-full object-cover grayscale"
+                                  />
+                                </div>
+                              )}
+                              <CardHeader>
+                                <div className="flex justify-between items-start gap-2">
+                                  <CardTitle className="text-lg">{item.title}</CardTitle>
+                                  <Badge variant="outline">Deleted</Badge>
+                                </div>
+                                <CardDescription className="line-clamp-2">
+                                  {item.description}
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="flex justify-between items-center gap-2">
+                                  <span className="text-xl font-bold">${item.price}</span>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => repostItemMutation.mutate(item.id)}
+                                    disabled={repostItemMutation.isPending}
+                                    data-testid={`button-repost-item-${item.id}`}
+                                  >
+                                    <RotateCcw className="h-4 w-4 mr-1" />
+                                    Repost
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </>
