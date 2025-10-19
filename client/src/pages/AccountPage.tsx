@@ -6,12 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Plus } from "lucide-react";
+import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Plus, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import type { Item } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Sidebar,
   SidebarContent,
@@ -28,11 +41,43 @@ export default function AccountPage() {
   const [activeSection, setActiveSection] = useState("dashboard");
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   // Fetch user's items for My Market
   const { data: userItems = [], isLoading: isLoadingItems } = useQuery<Item[]>({
     queryKey: [`/api/items?sellerId=${user?.id}`],
     enabled: !!user?.id && activeSection === "market",
+  });
+
+  const deleteItemMutation = useMutation({
+    mutationFn: async (itemId: string) => {
+      const response = await fetch(`/api/items/${itemId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete item');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          Array.isArray(query.queryKey) && 
+          typeof query.queryKey[0] === 'string' && 
+          query.queryKey[0].startsWith('/api/items')
+      });
+      toast({
+        title: "Item Deleted",
+        description: "Your listing has been removed.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete item. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const sidebarItems = [
@@ -202,11 +247,41 @@ export default function AccountPage() {
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <div className="flex justify-between items-center">
+                          <div className="flex justify-between items-center gap-2">
                             <span className="text-2xl font-bold">${item.price}</span>
-                            <Button variant="outline" size="sm" data-testid={`button-view-item-${item.id}`}>
-                              View
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" data-testid={`button-view-item-${item.id}`}>
+                                View
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    data-testid={`button-delete-item-${item.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Listing</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "{item.title}"? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel data-testid={`button-cancel-delete-${item.id}`}>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteItemMutation.mutate(item.id)}
+                                      data-testid={`button-confirm-delete-${item.id}`}
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
