@@ -148,11 +148,16 @@ Preferred communication style: Simple, everyday language.
 
 **User Account Management:**
 - Dashboard with profile settings
-- "My Market" - seller's active/past listings (filtered by sellerId query parameter)
+- "My Market" - seller's active/past listings with full management capabilities
+  - Filtered by sellerId query parameter
+  - Always-visible "Sell Item" button for adding new listings
+  - Delete functionality with confirmation dialog for removing items
+  - Empty state with call-to-action when no items listed
 - "My Bids" - bid tracking and notifications
 - "My Purchases" - purchase history with sorting
 - Report concern form with admin notification
 - Password reset functionality
+- Remember Me checkbox for extended session (30 days)
 - ItemCard component displays seller info using firstName/lastName with username fallback
 
 ## External Dependencies
