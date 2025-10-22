@@ -56,11 +56,13 @@ Preferred communication style: Simple, everyday language.
 **Database Schema:**
 - **Users table**: Authentication and profile data (id, username, email, password, firstName, lastName, profileImageUrl)
 - **Items table**: Marketplace listings with seller references, pricing, images, categories, conditions, status tracking, and soft-delete support (deletedAt field)
+- **Cart Items table**: Shopping cart persistence (id, userId, itemId, createdAt) with duplicate prevention
 - UUID primary keys with PostgreSQL's `gen_random_uuid()`
 - Relational integrity via foreign key constraints
 - Soft delete implementation for items (deletedAt timestamp instead of hard delete)
 - PublicUser type excludes password field for API responses
 - ItemWithSeller type joins items with sanitized seller data
+- CartItemWithDetails type joins cart items with full item and seller data
 
 **Data Persistence:**
 - All items and users stored in PostgreSQL database
@@ -72,6 +74,10 @@ Preferred communication style: Simple, everyday language.
 - `/api/items` POST - Authenticated item creation with image upload via multipart/form-data
 - `/api/items/:id` DELETE - Soft-delete item (sets deletedAt timestamp)
 - `/api/items/:id/repost` POST - Restore deleted item (clears deletedAt, sets status to 'available')
+- `/api/cart` GET - Retrieve user's cart items with full item and seller details
+- `/api/cart` POST - Add item to cart (prevents duplicates)
+- `/api/cart/:itemId` DELETE - Remove specific item from cart
+- `/api/cart` DELETE - Clear entire cart
 - `/public-objects/:filePath` - Public image/file retrieval from object storage
 - All authenticated endpoints include session cookies via TanStack Query default fetcher
 - Standardized error handling middleware
@@ -133,6 +139,13 @@ Preferred communication style: Simple, everyday language.
 - Sorting options (price, date, relevance)
 - Item condition classification (new, like-new, good, fair)
 - Status tracking (available, sold, pending)
+- Shopping cart functionality with persistent storage
+  - Add items to cart from marketplace
+  - Cart icon in header with item count badge
+  - Full cart page with item management
+  - Remove individual items or clear entire cart
+  - Duplicate prevention (same item can't be added twice)
+  - Order summary with total calculation
 
 **Messaging System:**
 - Messaging interface between buyers and sellers
