@@ -180,6 +180,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addToCart(userId: string, itemId: string): Promise<CartItem> {
+    // Check if item is already in cart
+    const [existing] = await db
+      .select()
+      .from(cartItems)
+      .where(and(eq(cartItems.userId, userId), eq(cartItems.itemId, itemId)));
+    
+    if (existing) {
+      return existing;
+    }
+
     const [cartItem] = await db
       .insert(cartItems)
       .values({
