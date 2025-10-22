@@ -9,6 +9,7 @@ The application is built as a full-stack TypeScript monorepo with a React fronte
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketplace listings and shopping cart until transaction completion.
 
 ## System Architecture
 
@@ -139,6 +140,7 @@ Preferred communication style: Simple, everyday language.
 - Sorting options (price, date, relevance)
 - Item condition classification (new, like-new, good, fair)
 - Status tracking (available, sold, pending)
+- **Privacy-first design**: Seller names remain anonymous in marketplace and cart views until transaction completion
 - Shopping cart functionality with persistent storage
   - Add items to cart from marketplace
   - Cart icon in header with item count badge
@@ -146,6 +148,7 @@ Preferred communication style: Simple, everyday language.
   - Remove individual items or clear entire cart
   - Duplicate prevention (same item can't be added twice)
   - Order summary with total calculation
+  - Anonymous seller display for user privacy
 
 **Messaging System:**
 - Messaging interface between buyers and sellers
