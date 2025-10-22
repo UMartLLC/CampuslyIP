@@ -108,17 +108,12 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={item.seller.profileImageUrl || undefined} />
-              <AvatarFallback className="text-xs">
-                {item.seller.firstName && item.seller.lastName 
-                  ? `${item.seller.firstName[0]}${item.seller.lastName[0]}`
-                  : item.seller.username.substring(0, 2).toUpperCase()}
+              <AvatarFallback className="text-xs bg-muted">
+                AS
               </AvatarFallback>
             </Avatar>
             <span className="text-sm text-muted-foreground" data-testid={`text-seller-${item.id}`}>
-              {item.seller.firstName && item.seller.lastName 
-                ? `${item.seller.firstName} ${item.seller.lastName}`
-                : item.seller.username}
+              Anonymous Seller
             </span>
           </div>
         </div>
