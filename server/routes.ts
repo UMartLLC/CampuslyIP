@@ -160,6 +160,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cart routes
+  app.get("/api/cart", async (req, res) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const cartItems = await storage.getCartItems(req.user.id);
+      res.json(cartItems);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      res.status(500).json({ message: "Failed to fetch cart" });
+    }
+  });
+
+  app.post("/api/cart", async (req, res) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const { itemId } = req.body;
+      if (!itemId) {
+        return res.status(400).json({ message: "Item ID is required" });
+      }
+      const cartItem = await storage.addToCart(req.user.id, itemId);
+      res.json(cartItem);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      res.status(500).json({ message: "Failed to add to cart" });
+    }
+  });
+
+  app.delete("/api/cart/:itemId", async (req, res) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const success = await storage.removeFromCart(req.user.id, req.params.itemId);
+      if (!success) {
+        return res.status(404).json({ message: "Cart item not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing from cart:", error);
+      res.status(500).json({ message: "Failed to remove from cart" });
+    }
+  });
+
+  app.delete("/api/cart", async (req, res) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      await storage.clearCart(req.user.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      res.status(500).json({ message: "Failed to clear cart" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
