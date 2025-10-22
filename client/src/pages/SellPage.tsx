@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-const CATEGORIES = ["Electronics", "Textbooks", "Furniture", "Clothing", "Sports", "Other"];
+const CATEGORIES = ["Electronics", "Textbooks", "Furniture", "Clothing", "School Supplies", "Sports & Recreation", "Other"];
 const CONDITIONS = ["new", "like-new", "good", "fair"];
 
 const formSchema = z.object({

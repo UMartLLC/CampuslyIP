@@ -19,9 +19,21 @@ export default function ShopByCategoryPage() {
     queryKey: ['/api/items'],
   });
 
-  // Count items by category
+  // Count items by category (case-insensitive matching)
   const categoryCounts = items.reduce((acc, item) => {
-    acc[item.category] = (acc[item.category] || 0) + 1;
+    // Normalize category name to match config
+    const normalizedCategory = item.category.toLowerCase();
+    
+    // Find matching category config
+    const matchingConfig = categoryConfig.find(
+      cat => cat.name.toLowerCase() === normalizedCategory || 
+             cat.name.toLowerCase().includes(normalizedCategory) ||
+             normalizedCategory.includes(cat.name.toLowerCase())
+    );
+    
+    if (matchingConfig) {
+      acc[matchingConfig.name] = (acc[matchingConfig.name] || 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
 

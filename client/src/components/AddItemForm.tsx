@@ -14,7 +14,7 @@ import type { InsertItem } from "@shared/schema";
 
 const CATEGORIES = [
   "Electronics",
-  "Textbooks", 
+  "Textbooks",
   "Furniture",
   "Clothing",
   "School Supplies",
