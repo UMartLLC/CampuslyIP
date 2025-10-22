@@ -1,13 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Book, Laptop, Armchair, Shirt, Dumbbell, MoreHorizontal } from "lucide-react";
+import { Book, Laptop, Armchair, Shirt, PencilRuler, Dumbbell, MoreHorizontal } from "lucide-react";
 
 const categories = [
-  { name: "Textbooks", icon: Book, color: "text-blue-500", count: 45 },
   { name: "Electronics", icon: Laptop, color: "text-purple-500", count: 32 },
+  { name: "Textbooks", icon: Book, color: "text-blue-500", count: 45 },
   { name: "Furniture", icon: Armchair, color: "text-orange-500", count: 28 },
   { name: "Clothing", icon: Shirt, color: "text-pink-500", count: 56 },
-  { name: "Sports", icon: Dumbbell, color: "text-green-500", count: 19 },
+  { name: "School Supplies", icon: PencilRuler, color: "text-cyan-500", count: 15 },
+  { name: "Sports & Recreation", icon: Dumbbell, color: "text-green-500", count: 19 },
   { name: "Other", icon: MoreHorizontal, color: "text-gray-500", count: 23 },
 ];
 
