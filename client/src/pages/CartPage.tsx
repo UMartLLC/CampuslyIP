@@ -147,9 +147,7 @@ export default function CartPage() {
                         {cartItem.item.description}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Seller: {cartItem.item.seller.firstName && cartItem.item.seller.lastName
-                          ? `${cartItem.item.seller.firstName} ${cartItem.item.seller.lastName}`
-                          : cartItem.item.seller.username}
+                        Seller: Anonymous Seller
                       </p>
                     </div>
                     <div className="flex flex-col items-end justify-between">
