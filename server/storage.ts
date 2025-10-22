@@ -1,5 +1,5 @@
 // Referenced from blueprint:javascript_auth_all_persistance
-import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, users, items } from "@shared/schema";
+import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, type CartItem, type CartItemWithDetails, users, items, cartItems } from "@shared/schema";
 import { db } from "./db";
 import { eq, isNull, and } from "drizzle-orm";
 import session from "express-session";
@@ -21,6 +21,11 @@ export interface IStorage {
   updateItem(id: string, item: Partial<InsertItem>): Promise<Item | undefined>;
   deleteItem(id: string): Promise<boolean>;
   repostItem(id: string): Promise<Item | undefined>;
+  
+  getCartItems(userId: string): Promise<CartItemWithDetails[]>;
+  addToCart(userId: string, itemId: string): Promise<CartItem>;
+  removeFromCart(userId: string, itemId: string): Promise<boolean>;
+  clearCart(userId: string): Promise<void>;
   
   sessionStore: session.Store;
 }
@@ -145,6 +150,58 @@ export class DatabaseStorage implements IStorage {
       .where(eq(items.id, id))
       .returning();
     return item || undefined;
+  }
+
+  async getCartItems(userId: string): Promise<CartItemWithDetails[]> {
+    const result = await db
+      .select()
+      .from(cartItems)
+      .leftJoin(items, eq(cartItems.itemId, items.id))
+      .leftJoin(users, eq(items.sellerId, users.id))
+      .where(eq(cartItems.userId, userId));
+    
+    return result.map(row => {
+      if (!row.items) {
+        throw new Error(`Item not found for cart item ${row.cart_items.id}`);
+      }
+      if (!row.users) {
+        throw new Error(`Seller not found for item ${row.items.id}`);
+      }
+      const publicSeller: PublicUser = row.users;
+      const itemWithSeller: ItemWithSeller = {
+        ...row.items,
+        seller: publicSeller,
+      };
+      return {
+        ...row.cart_items,
+        item: itemWithSeller,
+      };
+    });
+  }
+
+  async addToCart(userId: string, itemId: string): Promise<CartItem> {
+    const [cartItem] = await db
+      .insert(cartItems)
+      .values({
+        userId,
+        itemId,
+      })
+      .returning();
+    return cartItem;
+  }
+
+  async removeFromCart(userId: string, itemId: string): Promise<boolean> {
+    const result = await db
+      .delete(cartItems)
+      .where(and(eq(cartItems.userId, userId), eq(cartItems.itemId, itemId)))
+      .returning();
+    return result.length > 0;
+  }
+
+  async clearCart(userId: string): Promise<void> {
+    await db
+      .delete(cartItems)
+      .where(eq(cartItems.userId, userId));
   }
 }
 

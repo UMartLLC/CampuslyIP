@@ -43,6 +43,13 @@ export const items = pgTable("items", {
   deletedAt: timestamp("deleted_at"),
 });
 
+export const cartItems = pgTable("cart_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  itemId: varchar("item_id").notNull().references(() => items.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Schema for inserting new user (registration)
 // Referenced from blueprint:javascript_auth_all_persistance
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -62,9 +69,16 @@ export const insertItemSchema = createInsertSchema(items).pick({
   images: true,
 });
 
+export const insertCartItemSchema = createInsertSchema(cartItems).pick({
+  itemId: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type PublicUser = Omit<User, 'password'>;
 export type InsertItem = z.infer<typeof insertItemSchema>;
 export type Item = typeof items.$inferSelect;
 export type ItemWithSeller = Item & { seller: PublicUser };
+export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
+export type CartItem = typeof cartItems.$inferSelect;
+export type CartItemWithDetails = CartItem & { item: ItemWithSeller };
