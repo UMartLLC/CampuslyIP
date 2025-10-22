@@ -2,8 +2,11 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle, ShoppingCart } from "lucide-react";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { ItemWithSeller } from "@shared/schema";
 
 interface ItemCardProps {
@@ -14,6 +17,36 @@ interface ItemCardProps {
 
 export default function ItemCard({ item, onViewDetails, onContact }: ItemCardProps) {
   const [isLiked, setIsLiked] = useState(false);
+  const { toast } = useToast();
+
+  const addToCartMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ itemId: item.id }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add to cart');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      toast({
+        title: "Added to cart",
+        description: `${item.title} has been added to your cart.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const getConditionColor = (condition: string) => {
     switch (condition) {
@@ -96,11 +129,13 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
           className="flex-1"
           onClick={(e) => {
             e.stopPropagation();
-            onViewDetails?.();
+            addToCartMutation.mutate();
           }}
-          data-testid={`button-view-${item.id}`}
+          disabled={addToCartMutation.isPending}
+          data-testid={`button-add-to-cart-${item.id}`}
         >
-          View Details
+          <ShoppingCart className="h-4 w-4 mr-2" />
+          Add to Cart
         </Button>
         <Button
           variant="outline"
