@@ -23,132 +23,6 @@ export default function ItemsPage() {
     queryKey: ['/api/items'],
   });
 
-  // TODO: remove mock data - fallback for empty state
-  const mockItems: ItemWithSeller[] = items.length > 0 ? [] : [
-    {
-      id: "1",
-      title: "MacBook Air M2 - Barely Used",
-      description: "Excellent condition MacBook Air with M2 chip, 8GB RAM, 256GB SSD. Perfect for students. Comes with original charger and box.",
-      price: "899.99",
-      category: "Electronics",
-      condition: "like-new",
-      images: ["https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400"],
-      sellerId: "user1",
-      status: "available",
-      createdAt: new Date('2024-01-15'),
-      seller: {
-        id: "user1",
-        name: "Sarah Chen",
-        username: "sarahc",
-        email: "sarah@email.com",
-        password: "",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b193?w=100"
-      }
-    },
-    {
-      id: "2",
-      title: "Calculus Textbook - 8th Edition",
-      description: "Stewart's Calculus textbook in good condition. Minimal highlighting, all pages intact. Perfect for Math 101 and 102 courses.",
-      price: "89.99",
-      category: "Textbooks",
-      condition: "good",
-      images: ["https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400"],
-      sellerId: "user2",
-      status: "available",
-      createdAt: new Date('2024-01-10'),
-      seller: {
-        id: "user2",
-        name: "Mike Johnson",
-        username: "mikej",
-        email: "mike@email.com",
-        password: "",
-        avatar: null
-      }
-    },
-    {
-      id: "3",
-      title: "Study Desk with Chair",
-      description: "Wooden study desk with matching chair. Perfect for dorm room. Some scratches but very functional. Dimensions: 48x24 inches.",
-      price: "120.00",
-      category: "Furniture",
-      condition: "fair",
-      images: ["https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400"],
-      sellerId: "user3",
-      status: "available",
-      createdAt: new Date('2024-01-05'),
-      seller: {
-        id: "user3",
-        name: "Alex Kim",
-        username: "alexk",
-        email: "alex@email.com",
-        password: "",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100"
-      }
-    },
-    {
-      id: "4",
-      title: "iPhone 14 Pro - Space Black",
-      description: "iPhone 14 Pro in excellent condition. Screen protector applied since day one. 128GB storage. Battery health 98%.",
-      price: "699.99",
-      category: "Electronics",
-      condition: "like-new",
-      images: ["https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400"],
-      sellerId: "user4",
-      status: "available",
-      createdAt: new Date('2024-01-12'),
-      seller: {
-        id: "user4",
-        name: "Emma Davis",
-        username: "emmad",
-        email: "emma@email.com",
-        password: "",
-        avatar: "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=100"
-      }
-    },
-    {
-      id: "5",
-      title: "Organic Chemistry Textbook Bundle",
-      description: "Complete set: textbook, study guide, and solution manual. Used for one semester only. Great condition.",
-      price: "150.00",
-      category: "Textbooks",
-      condition: "like-new",
-      images: ["https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"],
-      sellerId: "user5",
-      status: "available",
-      createdAt: new Date('2024-01-08'),
-      seller: {
-        id: "user5",
-        name: "David Park",
-        username: "davidp",
-        email: "david@email.com",
-        password: "",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100"
-      }
-    },
-    {
-      id: "6",
-      title: "Gaming Chair - Ergonomic",
-      description: "Comfortable gaming chair with lumbar support. Black and red design. Great for long study sessions.",
-      price: "180.00",
-      category: "Furniture",
-      condition: "good",
-      images: ["https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400"],
-      sellerId: "user6",
-      status: "available",
-      createdAt: new Date('2024-01-03'),
-      seller: {
-        id: "user6",
-        name: "Jessica Wu",
-        username: "jessicaw",
-        email: "jessica@email.com",
-        password: "",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b193?w=100"
-      }
-    }
-  ];
-
-  const displayItems = items.length > 0 ? items : mockItems;
-
   const categories = getAllCategories();
   const conditions = ["new", "like-new", "good", "fair"];
 
@@ -179,11 +53,19 @@ export default function ItemsPage() {
       .map(([category]) => category)
   ));
 
-  const filteredItems = displayItems.filter(item => {
-    const subcategoryMatch = selectedSubcategories.length === 0 || 
-      (item.subcategory && selectedSubcategories.includes(item.subcategory));
+  const filteredItems = items.filter(item => {
+    // Filter by category and subcategory
+    let categoryMatch = true;
+    if (selectedSubcategories.length > 0) {
+      // If subcategories are selected, filter by them
+      categoryMatch = item.subcategory ? selectedSubcategories.includes(item.subcategory) : false;
+    } else if (selectedCategories.length > 0) {
+      // If only categories are selected (expanded), show all items in those categories
+      categoryMatch = selectedCategories.includes(item.category);
+    }
+    
     const conditionMatch = selectedConditions.length === 0 || selectedConditions.includes(item.condition);
-    return subcategoryMatch && conditionMatch;
+    return categoryMatch && conditionMatch;
   });
 
   const handleItemClick = (item: ItemWithSeller) => {
@@ -192,8 +74,11 @@ export default function ItemsPage() {
   };
 
   const handleContactSeller = (item: ItemWithSeller) => {
-    console.log('Contacting seller:', item.seller.name);
-    alert(`Coming soon: Direct messaging with ${item.seller.name}`);
+    const sellerName = item.seller.firstName && item.seller.lastName 
+      ? `${item.seller.firstName} ${item.seller.lastName}`
+      : item.seller.username;
+    console.log('Contacting seller:', sellerName);
+    alert(`Coming soon: Direct messaging with ${sellerName}`);
   };
 
   const handlePaymentComplete = (paymentMethod: string) => {
@@ -360,11 +245,33 @@ export default function ItemsPage() {
             </p>
           </div>
 
-          <ItemsGrid
-            items={filteredItems}
-            onItemClick={handleItemClick}
-            onContactSeller={handleContactSeller}
-          />
+          {filteredItems.length === 0 && !isLoading ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="text-center space-y-4 max-w-md">
+                <h3 className="text-xl font-semibold">No items found</h3>
+                <p className="text-muted-foreground">
+                  No items match your current filters. Try adjusting or clearing your filters to see more results.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setExpandedCategories([]);
+                    setSelectedSubcategories([]);
+                    setSelectedConditions([]);
+                  }}
+                  data-testid="button-clear-filters-empty"
+                >
+                  Clear All Filters
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <ItemsGrid
+              items={filteredItems}
+              onItemClick={handleItemClick}
+              onContactSeller={handleContactSeller}
+            />
+          )}
         </div>
       </div>
 
