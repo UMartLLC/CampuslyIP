@@ -1,7 +1,6 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, MessageCircle, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -101,22 +100,9 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
           {item.description}
         </p>
 
-        <Badge variant="secondary" className="mb-3" data-testid={`badge-category-${item.id}`}>
+        <Badge variant="secondary" data-testid={`badge-category-${item.id}`}>
           {item.category}
         </Badge>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Avatar className="h-6 w-6">
-              <AvatarFallback className="text-xs bg-muted">
-                AS
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-muted-foreground" data-testid={`text-seller-${item.id}`}>
-              Anonymous Seller
-            </span>
-          </div>
-        </div>
       </CardContent>
 
       <CardFooter className="p-4 pt-0 flex gap-2">
