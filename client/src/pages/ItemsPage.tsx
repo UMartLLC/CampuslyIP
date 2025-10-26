@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import ItemsGrid from "@/components/ItemsGrid";
 import PaymentModal from "@/components/PaymentModal";
@@ -9,12 +9,14 @@ import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/categories";
 
 export default function ItemsPage() {
   const [selectedItem, setSelectedItem] = useState<ItemWithSeller | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
 
   const { data: items = [], isLoading } = useQuery<ItemWithSeller[]>({
@@ -147,12 +149,40 @@ export default function ItemsPage() {
 
   const displayItems = items.length > 0 ? items : mockItems;
 
-  const categories = ["Electronics", "Textbooks", "Furniture", "Clothing", "School Supplies", "Other"];
+  const categories = getAllCategories();
   const conditions = ["new", "like-new", "good", "fair"];
 
+  // Get available subcategories based on selected categories
+  const availableSubcategories = useMemo(() => {
+    if (selectedCategories.length === 0) {
+      // If no categories selected, show all subcategories
+      return Object.values(CATEGORY_CONFIG).flatMap(config => config.subcategories);
+    }
+    // Show only subcategories for selected categories
+    return selectedCategories.flatMap(cat => getSubcategories(cat));
+  }, [selectedCategories]);
+
   const handleCategoryToggle = (category: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
+    setSelectedCategories(prev => {
+      const newCategories = prev.includes(category) 
+        ? prev.filter(c => c !== category) 
+        : [...prev, category];
+      
+      // Clear subcategories that are no longer valid
+      if (!newCategories.includes(category)) {
+        const categorySubcats = getSubcategories(category);
+        setSelectedSubcategories(prevSubs => 
+          prevSubs.filter(sub => !categorySubcats.includes(sub))
+        );
+      }
+      
+      return newCategories;
+    });
+  };
+
+  const handleSubcategoryToggle = (subcategory: string) => {
+    setSelectedSubcategories(prev =>
+      prev.includes(subcategory) ? prev.filter(c => c !== subcategory) : [...prev, subcategory]
     );
   };
 
@@ -164,8 +194,10 @@ export default function ItemsPage() {
 
   const filteredItems = displayItems.filter(item => {
     const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(item.category);
+    const subcategoryMatch = selectedSubcategories.length === 0 || 
+      (item.subcategory && selectedSubcategories.includes(item.subcategory));
     const conditionMatch = selectedConditions.length === 0 || selectedConditions.includes(item.condition);
-    return categoryMatch && conditionMatch;
+    return categoryMatch && subcategoryMatch && conditionMatch;
   });
 
   const handleItemClick = (item: ItemWithSeller) => {
@@ -247,6 +279,34 @@ export default function ItemsPage() {
 
           <Separator />
 
+          {/* Subcategories */}
+          {availableSubcategories.length > 0 && (
+            <>
+              <div className="space-y-3">
+                <h3 className="font-medium text-sm">Subcategories</h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {availableSubcategories.map((subcategory) => (
+                    <div key={subcategory} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`subcategory-${subcategory}`}
+                        checked={selectedSubcategories.includes(subcategory)}
+                        onCheckedChange={() => handleSubcategoryToggle(subcategory)}
+                        data-testid={`checkbox-subcategory-${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
+                      />
+                      <Label
+                        htmlFor={`subcategory-${subcategory}`}
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {subcategory}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <Separator />
+            </>
+          )}
+
           {/* Condition */}
           <div className="space-y-3">
             <h3 className="font-medium text-sm">Condition</h3>
@@ -278,6 +338,7 @@ export default function ItemsPage() {
             className="w-full"
             onClick={() => {
               setSelectedCategories([]);
+              setSelectedSubcategories([]);
               setSelectedConditions([]);
             }}
             data-testid="button-clear-filters"

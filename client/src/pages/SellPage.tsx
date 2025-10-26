@@ -13,8 +13,9 @@ import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/categories";
 
-const CATEGORIES = ["Electronics", "Textbooks", "Furniture", "Clothing", "School Supplies", "Sports & Recreation", "Other"];
+const CATEGORIES = getAllCategories();
 const CONDITIONS = ["new", "like-new", "good", "fair"];
 
 const formSchema = z.object({
@@ -22,6 +23,7 @@ const formSchema = z.object({
   description: z.string().min(1, "Description is required"),
   price: z.string().min(0.01, "Price must be greater than 0"),
   category: z.string().min(1, "Category is required"),
+  subcategory: z.string().optional(),
   condition: z.string().min(1, "Condition is required"),
   contact: z.string().optional(),
 });
@@ -39,10 +41,15 @@ export default function SellPage() {
       description: "",
       price: "",
       category: "",
+      subcategory: "",
       condition: "",
       contact: "",
     },
   });
+
+  // Watch category to update subcategories
+  const selectedCategory = form.watch("category");
+  const availableSubcategories = selectedCategory ? getSubcategories(selectedCategory) : [];
 
   const createItemMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -92,6 +99,9 @@ export default function SellPage() {
     formData.append('description', data.description);
     formData.append('price', data.price);
     formData.append('category', data.category);
+    if (data.subcategory) {
+      formData.append('subcategory', data.subcategory);
+    }
     formData.append('condition', data.condition);
     // sellerId is now automatically set from authenticated user session
     
@@ -159,7 +169,13 @@ export default function SellPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        form.setValue("subcategory", ""); // Reset subcategory when category changes
+                      }} 
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-category">
                           <SelectValue placeholder="Select a category" />
@@ -167,7 +183,7 @@ export default function SellPage() {
                       </FormControl>
                       <SelectContent>
                         {CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat.toLowerCase()}>
+                          <SelectItem key={cat} value={cat}>
                             {cat}
                           </SelectItem>
                         ))}
@@ -177,6 +193,33 @@ export default function SellPage() {
                   </FormItem>
                 )}
               />
+
+              {selectedCategory && availableSubcategories.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="subcategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subcategory (Optional)</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-subcategory">
+                            <SelectValue placeholder="Select a subcategory" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableSubcategories.map((subcat) => (
+                            <SelectItem key={subcat} value={subcat}>
+                              {subcat}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
