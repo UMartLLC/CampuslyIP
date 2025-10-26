@@ -1,21 +1,21 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import ItemsGrid from "@/components/ItemsGrid";
 import PaymentModal from "@/components/PaymentModal";
 import type { ItemWithSeller } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Menu, X, SlidersHorizontal } from "lucide-react";
+import { Menu, X, SlidersHorizontal, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/categories";
+import { CATEGORY_CONFIG, getAllCategories } from "@shared/categories";
 
 export default function ItemsPage() {
   const [selectedItem, setSelectedItem] = useState<ItemWithSeller | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
 
@@ -152,32 +152,10 @@ export default function ItemsPage() {
   const categories = getAllCategories();
   const conditions = ["new", "like-new", "good", "fair"];
 
-  // Get available subcategories based on selected categories
-  const availableSubcategories = useMemo(() => {
-    if (selectedCategories.length === 0) {
-      // If no categories selected, show all subcategories
-      return Object.values(CATEGORY_CONFIG).flatMap(config => config.subcategories);
-    }
-    // Show only subcategories for selected categories
-    return selectedCategories.flatMap(cat => getSubcategories(cat));
-  }, [selectedCategories]);
-
-  const handleCategoryToggle = (category: string) => {
-    setSelectedCategories(prev => {
-      const newCategories = prev.includes(category) 
-        ? prev.filter(c => c !== category) 
-        : [...prev, category];
-      
-      // Clear subcategories that are no longer valid
-      if (!newCategories.includes(category)) {
-        const categorySubcats = getSubcategories(category);
-        setSelectedSubcategories(prevSubs => 
-          prevSubs.filter(sub => !categorySubcats.includes(sub))
-        );
-      }
-      
-      return newCategories;
-    });
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev =>
+      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
+    );
   };
 
   const handleSubcategoryToggle = (subcategory: string) => {
@@ -192,12 +170,20 @@ export default function ItemsPage() {
     );
   };
 
+  // Get selected categories based on which subcategories are selected
+  const selectedCategories = Array.from(new Set(
+    Object.entries(CATEGORY_CONFIG)
+      .filter(([_, config]) => 
+        config.subcategories.some(sub => selectedSubcategories.includes(sub))
+      )
+      .map(([category]) => category)
+  ));
+
   const filteredItems = displayItems.filter(item => {
-    const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(item.category);
     const subcategoryMatch = selectedSubcategories.length === 0 || 
       (item.subcategory && selectedSubcategories.includes(item.subcategory));
     const conditionMatch = selectedConditions.length === 0 || selectedConditions.includes(item.condition);
-    return categoryMatch && subcategoryMatch && conditionMatch;
+    return subcategoryMatch && conditionMatch;
   });
 
   const handleItemClick = (item: ItemWithSeller) => {
@@ -254,58 +240,58 @@ export default function ItemsPage() {
         </div>
         
         <div className="flex-1 p-4 space-y-6">
-          {/* Categories */}
-          <div className="space-y-3">
-            <h3 className="font-medium text-sm">Categories</h3>
-            <div className="space-y-2">
-              {categories.map((category) => (
-                <div key={category} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`category-${category}`}
-                    checked={selectedCategories.includes(category)}
-                    onCheckedChange={() => handleCategoryToggle(category)}
-                    data-testid={`checkbox-category-${category.toLowerCase()}`}
-                  />
-                  <Label
-                    htmlFor={`category-${category}`}
-                    className="text-sm font-normal cursor-pointer"
+          {/* Categories with expandable subcategories */}
+          <div className="space-y-2">
+            <h3 className="font-medium text-sm mb-3">Categories</h3>
+            {categories.map((category) => {
+              const subcategories = CATEGORY_CONFIG[category as keyof typeof CATEGORY_CONFIG].subcategories;
+              const isExpanded = expandedCategories.includes(category);
+              const hasSelectedSubcategories = subcategories.some(sub => selectedSubcategories.includes(sub));
+              
+              return (
+                <div key={category} className="space-y-1">
+                  <button
+                    onClick={() => toggleCategory(category)}
+                    className={cn(
+                      "flex items-center justify-between w-full px-2 py-1.5 rounded-md text-sm hover-elevate active-elevate-2",
+                      hasSelectedSubcategories && "bg-accent/50"
+                    )}
+                    data-testid={`button-category-${category.toLowerCase()}`}
                   >
-                    {category}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Subcategories */}
-          {availableSubcategories.length > 0 && (
-            <>
-              <div className="space-y-3">
-                <h3 className="font-medium text-sm">Subcategories</h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {availableSubcategories.map((subcategory) => (
-                    <div key={subcategory} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`subcategory-${subcategory}`}
-                        checked={selectedSubcategories.includes(subcategory)}
-                        onCheckedChange={() => handleSubcategoryToggle(subcategory)}
-                        data-testid={`checkbox-subcategory-${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
-                      />
-                      <Label
-                        htmlFor={`subcategory-${subcategory}`}
-                        className="text-sm font-normal cursor-pointer"
-                      >
-                        {subcategory}
-                      </Label>
+                    <span className={cn(hasSelectedSubcategories && "font-medium")}>
+                      {category}
+                    </span>
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </button>
+                  
+                  {isExpanded && (
+                    <div className="ml-4 space-y-2 pt-1 pb-2">
+                      {subcategories.map((subcategory) => (
+                        <div key={subcategory} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`subcategory-${subcategory}`}
+                            checked={selectedSubcategories.includes(subcategory)}
+                            onCheckedChange={() => handleSubcategoryToggle(subcategory)}
+                            data-testid={`checkbox-subcategory-${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
+                          />
+                          <Label
+                            htmlFor={`subcategory-${subcategory}`}
+                            className="text-sm font-normal cursor-pointer"
+                          >
+                            {subcategory}
+                          </Label>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
-              <Separator />
-            </>
-          )}
+              );
+            })}
+          </div>
 
           {/* Condition */}
           <div className="space-y-3">
@@ -337,7 +323,7 @@ export default function ItemsPage() {
             variant="outline"
             className="w-full"
             onClick={() => {
-              setSelectedCategories([]);
+              setExpandedCategories([]);
               setSelectedSubcategories([]);
               setSelectedConditions([]);
             }}
