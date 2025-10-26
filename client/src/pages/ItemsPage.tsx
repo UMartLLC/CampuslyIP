@@ -44,24 +44,15 @@ export default function ItemsPage() {
     );
   };
 
-  // Get selected categories based on which subcategories are selected
-  const selectedCategories = Array.from(new Set(
-    Object.entries(CATEGORY_CONFIG)
-      .filter(([_, config]) => 
-        config.subcategories.some(sub => selectedSubcategories.includes(sub))
-      )
-      .map(([category]) => category)
-  ));
-
   const filteredItems = items.filter(item => {
     // Filter by category and subcategory
     let categoryMatch = true;
     if (selectedSubcategories.length > 0) {
       // If subcategories are selected, filter by them
       categoryMatch = item.subcategory ? selectedSubcategories.includes(item.subcategory) : false;
-    } else if (selectedCategories.length > 0) {
-      // If only categories are selected (expanded), show all items in those categories
-      categoryMatch = selectedCategories.includes(item.category);
+    } else if (expandedCategories.length > 0) {
+      // If only categories are expanded (no subcategories selected), show all items in those categories
+      categoryMatch = expandedCategories.includes(item.category);
     }
     
     const conditionMatch = selectedConditions.length === 0 || selectedConditions.includes(item.condition);
@@ -132,6 +123,7 @@ export default function ItemsPage() {
               const subcategories = CATEGORY_CONFIG[category as keyof typeof CATEGORY_CONFIG].subcategories;
               const isExpanded = expandedCategories.includes(category);
               const hasSelectedSubcategories = subcategories.some(sub => selectedSubcategories.includes(sub));
+              const isActiveFilter = isExpanded || hasSelectedSubcategories;
               
               return (
                 <div key={category} className="space-y-1">
@@ -139,11 +131,11 @@ export default function ItemsPage() {
                     onClick={() => toggleCategory(category)}
                     className={cn(
                       "flex items-center justify-between w-full px-2 py-1.5 rounded-md text-sm hover-elevate active-elevate-2",
-                      hasSelectedSubcategories && "bg-accent/50"
+                      isActiveFilter && "bg-accent/50"
                     )}
                     data-testid={`button-category-${category.toLowerCase()}`}
                   >
-                    <span className={cn(hasSelectedSubcategories && "font-medium")}>
+                    <span className={cn(isActiveFilter && "font-medium")}>
                       {category}
                     </span>
                     {isExpanded ? (
