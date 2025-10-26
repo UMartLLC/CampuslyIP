@@ -201,7 +201,7 @@ export default function SellPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Subcategory (Optional)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-subcategory">
                             <SelectValue placeholder="Select a subcategory" />
