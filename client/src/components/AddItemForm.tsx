@@ -11,16 +11,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { insertItemSchema } from "@shared/schema";
 import type { InsertItem } from "@shared/schema";
+import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/categories";
 
-const CATEGORIES = [
-  "Electronics",
-  "Textbooks",
-  "Furniture",
-  "Clothing",
-  "School Supplies",
-  "Sports & Recreation",
-  "Other"
-];
+const CATEGORIES = getAllCategories();
 
 const CONDITIONS = [
   { value: "new", label: "New", description: "Brand new, never used" },
@@ -45,10 +38,15 @@ export default function AddItemForm({ onSubmit, isLoading }: AddItemFormProps) {
       description: "",
       price: "",
       category: "",
+      subcategory: "",
       condition: "",
       images: []
     }
   });
+
+  // Watch category to update subcategories
+  const selectedCategory = form.watch("category");
+  const availableSubcategories = selectedCategory ? getSubcategories(selectedCategory) : [];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -155,7 +153,13 @@ export default function AddItemForm({ onSubmit, isLoading }: AddItemFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        form.setValue("subcategory", ""); // Reset subcategory when category changes
+                      }} 
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-category">
                           <SelectValue placeholder="Select category" />
@@ -200,6 +204,34 @@ export default function AddItemForm({ onSubmit, isLoading }: AddItemFormProps) {
                 )}
               />
             </div>
+
+            {/* Subcategory - appears when category is selected */}
+            {selectedCategory && availableSubcategories.length > 0 && (
+              <FormField
+                control={form.control}
+                name="subcategory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subcategory *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-subcategory">
+                          <SelectValue placeholder="Select a subcategory" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableSubcategories.map((subcat) => (
+                          <SelectItem key={subcat} value={subcat}>
+                            {subcat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* Price */}
             <FormField

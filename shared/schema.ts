@@ -69,6 +69,8 @@ export const insertItemSchema = createInsertSchema(items).pick({
   subcategory: true,
   condition: true,
   images: true,
+}).extend({
+  subcategory: z.string().min(1, "Subcategory is required"),
 });
 
 export const insertCartItemSchema = createInsertSchema(cartItems).pick({

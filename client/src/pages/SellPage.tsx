@@ -23,7 +23,7 @@ const formSchema = z.object({
   description: z.string().min(1, "Description is required"),
   price: z.string().min(0.01, "Price must be greater than 0"),
   category: z.string().min(1, "Category is required"),
-  subcategory: z.string().optional(),
+  subcategory: z.string().min(1, "Subcategory is required"),
   condition: z.string().min(1, "Condition is required"),
   contact: z.string().optional(),
 });
@@ -200,7 +200,7 @@ export default function SellPage() {
                   name="subcategory"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Subcategory (Optional)</FormLabel>
+                      <FormLabel>Subcategory</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-subcategory">
