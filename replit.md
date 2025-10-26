@@ -135,8 +135,18 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
 
 **Marketplace Features:**
 - Item listing with multi-step form
-- Category-based browsing (Electronics, Textbooks, Furniture, etc.)
-- Advanced filtering (category, condition, price range, search)
+- Multi-level category/subcategory system with accordion-style filtering UI
+  - Categories: Electronics, Textbooks, Furniture, Clothing, School Supplies, Sports & Recreation, Other
+  - Each category has specialized subcategories (e.g., Electronics → Laptops, Phones, Tablets)
+  - Centralized configuration in shared/categories.ts ensures consistency
+  - Subcategory field added to database schema for granular filtering
+- Accordion-style filtering interface
+  - Click category to expand and show subcategory checkboxes
+  - Expanding a category immediately filters to show all items in that category
+  - Selecting subcategories further narrows results within the category
+  - Visual feedback with accent colors for active filters
+  - Empty state message when no items match with clear filters button
+- Advanced filtering (category, subcategory, condition)
 - Sorting options (price, date, relevance)
 - Item condition classification (new, like-new, good, fair)
 - Status tracking (available, sold, pending)
