@@ -4,7 +4,7 @@ import ItemsGrid from "@/components/ItemsGrid";
 import PaymentModal from "@/components/PaymentModal";
 import type { ItemWithSeller } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Menu, X, SlidersHorizontal, ChevronDown, ChevronRight } from "lucide-react";
+import { Menu, X, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -129,20 +129,22 @@ export default function ItemsPage() {
                 <div key={category} className="space-y-1">
                   <button
                     onClick={() => toggleCategory(category)}
-                    className={cn(
-                      "flex items-center justify-between w-full px-2 py-1.5 rounded-md text-sm hover-elevate active-elevate-2",
-                      isActiveFilter && "bg-accent/50"
-                    )}
+                    className="flex items-center space-x-2 w-full text-sm hover-elevate active-elevate-2 px-2 py-1.5 rounded-md"
                     data-testid={`button-category-${category.toLowerCase()}`}
                   >
+                    <div
+                      className={cn(
+                        "h-4 w-4 border rounded-sm transition-colors flex items-center justify-center",
+                        isExpanded ? "bg-primary border-primary" : "border-input"
+                      )}
+                    >
+                      {isExpanded && (
+                        <div className="h-2 w-2 bg-primary-foreground rounded-[1px]" />
+                      )}
+                    </div>
                     <span className={cn(isActiveFilter && "font-medium")}>
                       {category}
                     </span>
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
                   </button>
                   
                   {isExpanded && (

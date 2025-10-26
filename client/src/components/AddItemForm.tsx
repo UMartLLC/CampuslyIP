@@ -191,10 +191,7 @@ export default function AddItemForm({ onSubmit, isLoading }: AddItemFormProps) {
                       <SelectContent>
                         {CONDITIONS.map(condition => (
                           <SelectItem key={condition.value} value={condition.value}>
-                            <div>
-                              <div className="font-medium">{condition.label}</div>
-                              <div className="text-xs text-muted-foreground">{condition.description}</div>
-                            </div>
+                            {condition.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
