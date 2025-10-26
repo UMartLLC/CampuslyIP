@@ -35,6 +35,7 @@ export const items = pgTable("items", {
   description: text("description").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   category: text("category").notNull(),
+  subcategory: text("subcategory"),
   condition: text("condition").notNull(), // "new", "like-new", "good", "fair"
   images: text("images").array().default(sql`'{}'::text[]`),
   sellerId: varchar("seller_id").notNull().references(() => users.id),
@@ -65,6 +66,7 @@ export const insertItemSchema = createInsertSchema(items).pick({
   description: true,
   price: true,
   category: true,
+  subcategory: true,
   condition: true,
   images: true,
 });
