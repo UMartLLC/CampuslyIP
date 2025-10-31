@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, X, DollarSign, Package } from "lucide-react";
+import { Upload, X, DollarSign, Package, ChevronUp, ChevronDown } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -69,6 +69,38 @@ export default function AddItemForm({ onSubmit, isLoading }: AddItemFormProps) {
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
+  const moveImageUp = (index: number) => {
+    if (index === 0) return;
+    
+    setImageFiles(prev => {
+      const newFiles = [...prev];
+      [newFiles[index - 1], newFiles[index]] = [newFiles[index], newFiles[index - 1]];
+      return newFiles;
+    });
+    
+    setImagePreviews(prev => {
+      const newPreviews = [...prev];
+      [newPreviews[index - 1], newPreviews[index]] = [newPreviews[index], newPreviews[index - 1]];
+      return newPreviews;
+    });
+  };
+
+  const moveImageDown = (index: number) => {
+    if (index === imageFiles.length - 1) return;
+    
+    setImageFiles(prev => {
+      const newFiles = [...prev];
+      [newFiles[index], newFiles[index + 1]] = [newFiles[index + 1], newFiles[index]];
+      return newFiles;
+    });
+    
+    setImagePreviews(prev => {
+      const newPreviews = [...prev];
+      [newPreviews[index], newPreviews[index + 1]] = [newPreviews[index + 1], newPreviews[index]];
+      return newPreviews;
+    });
+  };
+
   const handleSubmit = (data: InsertItem) => {
     // TODO: In real app, upload images to object storage first
     const formData = {
@@ -96,23 +128,58 @@ export default function AddItemForm({ onSubmit, isLoading }: AddItemFormProps) {
               <Label>Photos (up to 5)</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {imagePreviews.map((preview, index) => (
-                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden border">
+                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden border group">
                     <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                    
+                    {/* Reorder Buttons */}
+                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => moveImageUp(index)}
+                        disabled={index === 0}
+                        data-testid={`button-move-up-${index}`}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => moveImageDown(index)}
+                        disabled={index === imageFiles.length - 1}
+                        data-testid={`button-move-down-${index}`}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    {/* Remove Button */}
                     <Button
                       type="button"
                       variant="destructive"
                       size="icon"
-                      className="absolute top-2 right-2 h-6 w-6"
+                      className="absolute top-2 right-2 h-7 w-7"
                       onClick={() => removeImage(index)}
                       data-testid={`button-remove-image-${index}`}
                     >
                       <X className="h-3 w-3" />
                     </Button>
+                    
+                    {/* Priority Badge */}
+                    {index === 0 && (
+                      <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                        Primary
+                      </div>
+                    )}
                   </div>
                 ))}
                 
                 {imageFiles.length < 5 && (
-                  <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center cursor-pointer hover-elevate">
+                  <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center cursor-pointer hover-elevate" data-testid="label-upload-images">
                     <Upload className="h-8 w-8 text-muted-foreground mb-2" />
                     <span className="text-sm text-muted-foreground text-center px-2">
                       Add Photo

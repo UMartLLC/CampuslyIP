@@ -1,12 +1,13 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, ShoppingCart } from "lucide-react";
+import { Heart, MessageCircle, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { ItemWithSeller } from "@shared/schema";
+import { cn } from "@/lib/utils";
 
 interface ItemCardProps {
   item: ItemWithSeller;
@@ -16,7 +17,26 @@ interface ItemCardProps {
 
 export default function ItemCard({ item, onViewDetails, onContact }: ItemCardProps) {
   const [isLiked, setIsLiked] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { toast } = useToast();
+  
+  const images = item.images && item.images.length > 0 ? item.images : ["/api/placeholder/300/225"];
+  const hasMultipleImages = images.length > 1;
+
+  const goToPreviousImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const goToNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const goToImage = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    setCurrentImageIndex(index);
+  };
 
   const addToCartMutation = useMutation({
     mutationFn: async () => {
@@ -62,11 +82,52 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
       <div className="relative">
         <div className="aspect-[4/3] overflow-hidden rounded-t-lg">
           <img
-            src={item.images?.[0] || "/api/placeholder/300/225"}
+            src={images[currentImageIndex]}
             alt={item.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             data-testid={`img-item-${item.id}`}
           />
+          
+          {/* Navigation Arrows - Only show if multiple images */}
+          {hasMultipleImages && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur hover:bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={goToPreviousImage}
+                data-testid={`button-prev-image-${item.id}`}
+              >
+                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur hover:bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={goToNextImage}
+                data-testid={`button-next-image-${item.id}`}
+              >
+                <ChevronRight className="h-5 w-5 text-gray-600" />
+              </Button>
+              
+              {/* Image Indicators (Dots) */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={(e) => goToImage(e, index)}
+                    className={cn(
+                      "w-2 h-2 rounded-full transition-all",
+                      currentImageIndex === index 
+                        ? "bg-white w-6" 
+                        : "bg-white/60 hover:bg-white/80"
+                    )}
+                    data-testid={`button-image-indicator-${item.id}-${index}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
         <Button
           variant="ghost"
