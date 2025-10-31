@@ -40,7 +40,7 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
   };
 
   const navItems = [
-    { href: "/shop-by-category", label: "Shop By Category", testId: "link-shop-by-category" },
+    { href: "/items", label: "Marketplace", testId: "link-marketplace" },
     { href: "/sell", label: "Sell Items", testId: "link-sell-items" },
     { href: "/locoloco", label: "Advertise (LocoLoco)", testId: "link-advertise" },
     { href: "/design-room", label: "Design your room", testId: "link-design-room" },
