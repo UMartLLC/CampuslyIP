@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { CATEGORY_CONFIG, getAllCategories } from "@shared/categories";
+import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/categories";
 
 export default function ItemsPage() {
   const [selectedItem, setSelectedItem] = useState<ItemWithSeller | null>(null);
@@ -27,6 +27,16 @@ export default function ItemsPage() {
   const conditions = ["new", "like-new", "good", "fair"];
 
   const toggleCategory = (category: string) => {
+    const isCurrentlyExpanded = expandedCategories.includes(category);
+    
+    // If unchecking (collapsing) a category, also uncheck all its subcategories
+    if (isCurrentlyExpanded) {
+      const subcategoriesToRemove = getSubcategories(category);
+      setSelectedSubcategories(prev => 
+        prev.filter(sub => !subcategoriesToRemove.includes(sub))
+      );
+    }
+    
     setExpandedCategories(prev =>
       prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
     );
