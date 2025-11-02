@@ -147,9 +147,18 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
   - Visual feedback with accent colors for active filters
   - Empty state message when no items match with clear filters button
 - Advanced filtering (category, subcategory, condition)
+- **Site-wide search functionality**: Search bar in header navigates to marketplace with results filtered by query
 - Sorting options (price, date, relevance)
 - Item condition classification (new, like-new, good, fair)
 - Status tracking (available, sold, pending)
+- **Image management with carousel navigation**:
+  - Up to 5 images per listing
+  - Carousel display on marketplace cards (arrows + dots when multiple images)
+  - Image reordering with up/down arrows during creation/editing
+  - First image = primary thumbnail with "Primary" badge
+  - Add, remove, and reorder images freely
+  - **Edit existing listings**: Full image management on posted items (reorder, add new, remove existing)
+  - Unified reordering: new and existing images can be interleaved in any order
 - **Privacy-first design**: Seller names remain anonymous in marketplace and cart views until transaction completion
 - Shopping cart functionality with persistent storage
   - Add items to cart from marketplace

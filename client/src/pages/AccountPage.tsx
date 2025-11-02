@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Plus, Trash2, History, RotateCcw } from "lucide-react";
+import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Plus, Trash2, History, RotateCcw, Pencil } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ import type { Item } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import EditItemDialog from "@/components/EditItemDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,7 @@ import {
 
 export default function AccountPage() {
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -117,6 +119,45 @@ export default function AccountPage() {
       });
     },
   });
+
+  const editItemMutation = useMutation({
+    mutationFn: async ({ itemId, formData }: { itemId: string; formData: FormData }) => {
+      const response = await fetch(`/api/items/${itemId}`, {
+        method: 'PATCH',
+        body: formData,
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to update item');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          Array.isArray(query.queryKey) && 
+          typeof query.queryKey[0] === 'string' && 
+          query.queryKey[0].startsWith('/api/items')
+      });
+      setEditingItem(null);
+      toast({
+        title: "Item Updated",
+        description: "Your listing has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update item. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditItem = (itemId: string, formData: FormData) => {
+    editItemMutation.mutate({ itemId, formData });
+  };
 
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: User },
@@ -289,8 +330,13 @@ export default function AccountPage() {
                           <div className="flex justify-between items-center gap-2">
                             <span className="text-2xl font-bold">${item.price}</span>
                             <div className="flex gap-2">
-                              <Button variant="outline" size="sm" data-testid={`button-view-item-${item.id}`}>
-                                View
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setEditingItem(item)}
+                                data-testid={`button-edit-item-${item.id}`}
+                              >
+                                <Pencil className="h-4 w-4" />
                               </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
@@ -564,6 +610,17 @@ export default function AccountPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Item Dialog */}
+      {editingItem && (
+        <EditItemDialog
+          item={editingItem}
+          open={!!editingItem}
+          onOpenChange={(open) => !open && setEditingItem(null)}
+          onSubmit={handleEditItem}
+          isLoading={editItemMutation.isPending}
+        />
+      )}
     </SidebarProvider>
   );
 }
