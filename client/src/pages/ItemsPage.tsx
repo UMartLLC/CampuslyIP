@@ -4,7 +4,7 @@ import ItemsGrid from "@/components/ItemsGrid";
 import PaymentModal from "@/components/PaymentModal";
 import type { ItemWithSeller } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Menu, X, SlidersHorizontal } from "lucide-react";
+import { Menu, X, SlidersHorizontal, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
