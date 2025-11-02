@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/categories";
+import heic2any from "heic2any";
 
 const CATEGORIES = getAllCategories();
 const CONDITIONS = ["new", "like-new", "good", "fair"];
@@ -88,20 +89,62 @@ export default function SellPage() {
     },
   });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files).slice(0, 5 - images.length);
+      const selectedFiles = Array.from(e.target.files).slice(0, 5 - images.length);
       
-      setImages(prev => [...prev, ...newFiles]);
+      const processedFiles: File[] = [];
+      const previews: string[] = [];
       
-      // Create previews
-      newFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setImagePreviews(prev => [...prev, e.target?.result as string]);
-        };
-        reader.readAsDataURL(file);
-      });
+      for (const file of selectedFiles) {
+        try {
+          let processedFile = file;
+          
+          // Convert HEIC to JPEG
+          if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+            toast({
+              title: "Converting HEIC image",
+              description: `Converting ${file.name} to JPEG...`,
+            });
+            
+            const convertedBlob = await heic2any({
+              blob: file,
+              toType: 'image/jpeg',
+              quality: 0.9,
+            });
+            
+            // heic2any can return an array of blobs for multi-image HEIC files
+            const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+            
+            processedFile = new File(
+              [blob], 
+              file.name.replace(/\.heic$/i, '.jpg'),
+              { type: 'image/jpeg' }
+            );
+          }
+          
+          processedFiles.push(processedFile);
+          
+          // Create preview
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            previews.push(e.target?.result as string);
+            if (previews.length === selectedFiles.length) {
+              setImagePreviews(prev => [...prev, ...previews]);
+            }
+          };
+          reader.readAsDataURL(processedFile);
+        } catch (error) {
+          console.error('Error processing image:', error);
+          toast({
+            title: "Error processing image",
+            description: `Failed to process ${file.name}. Please try another image.`,
+            variant: "destructive",
+          });
+        }
+      }
+      
+      setImages(prev => [...prev, ...processedFiles]);
     }
   };
 
@@ -238,7 +281,7 @@ export default function SellPage() {
                       </span>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/*,.heic,.HEIC"
                         multiple
                         onChange={handleImageUpload}
                         className="hidden"

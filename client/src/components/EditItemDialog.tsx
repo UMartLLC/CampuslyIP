@@ -12,6 +12,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/categories";
 import type { Item } from "@shared/schema";
+import heic2any from "heic2any";
+import { useToast } from "@/hooks/use-toast";
 
 const CATEGORIES = getAllCategories();
 const CONDITIONS = ["new", "like-new", "good", "fair"];
