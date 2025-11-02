@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import type { CartItemWithDetails } from "@shared/schema";
@@ -26,6 +26,7 @@ interface HeaderProps {
 export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [, setLocation] = useLocation();
   const { user, logoutMutation } = useAuth();
 
   // Fetch cart items
@@ -36,6 +37,10 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to items page with search query
+      setLocation(`/items?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
     onSearch?.(searchQuery);
   };
 

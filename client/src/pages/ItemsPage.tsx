@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import ItemsGrid from "@/components/ItemsGrid";
 import PaymentModal from "@/components/PaymentModal";
@@ -10,14 +10,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/categories";
+import { useLocation } from "wouter";
 
 export default function ItemsPage() {
+  const [location] = useLocation();
   const [selectedItem, setSelectedItem] = useState<ItemWithSeller | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Parse search query from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const search = params.get('search');
+    if (search) {
+      setSearchQuery(search);
+    }
+  }, [location]);
 
   const { data: items = [], isLoading } = useQuery<ItemWithSeller[]>({
     queryKey: ['/api/items'],
@@ -55,6 +67,17 @@ export default function ItemsPage() {
   };
 
   const filteredItems = items.filter(item => {
+    // Filter by search query
+    let searchMatch = true;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      searchMatch = 
+        item.title.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query) ||
+        item.category.toLowerCase().includes(query) ||
+        (item.subcategory?.toLowerCase().includes(query) || false);
+    }
+    
     // Filter by category and subcategory
     let categoryMatch = true;
     if (selectedSubcategories.length > 0) {
@@ -66,7 +89,7 @@ export default function ItemsPage() {
     }
     
     const conditionMatch = selectedConditions.length === 0 || selectedConditions.includes(item.condition);
-    return categoryMatch && conditionMatch;
+    return searchMatch && categoryMatch && conditionMatch;
   });
 
   const handleItemClick = (item: ItemWithSeller) => {
@@ -215,6 +238,8 @@ export default function ItemsPage() {
               setExpandedCategories([]);
               setSelectedSubcategories([]);
               setSelectedConditions([]);
+              setSearchQuery("");
+              window.history.pushState({}, '', '/items');
             }}
             data-testid="button-clear-filters"
           >
@@ -238,14 +263,29 @@ export default function ItemsPage() {
                   <Menu className="h-5 w-5" />
                 </Button>
               )}
-              <div>
+              <div className="flex-1">
                 <h1 className="text-3xl md:text-4xl font-bold font-heading">
-                  Browse Items
+                  {searchQuery ? `Search Results for "${searchQuery}"` : 'Browse Items'}
                 </h1>
               </div>
+              {searchQuery && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery("");
+                    window.history.pushState({}, '', '/items');
+                  }}
+                  data-testid="button-clear-search"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Clear Search
+                </Button>
+              )}
             </div>
             <p className="text-lg text-muted-foreground">
-              Discover great deals from fellow students on your campus
+              {searchQuery 
+                ? `Showing ${filteredItems.length} result${filteredItems.length !== 1 ? 's' : ''}`
+                : 'Discover great deals from fellow students on your campus'}
             </p>
           </div>
 
@@ -262,6 +302,8 @@ export default function ItemsPage() {
                     setExpandedCategories([]);
                     setSelectedSubcategories([]);
                     setSelectedConditions([]);
+                    setSearchQuery("");
+                    window.history.pushState({}, '', '/items');
                   }}
                   data-testid="button-clear-filters-empty"
                 >
