@@ -43,6 +43,7 @@ type ImageItem = {
 };
 
 export default function EditItemDialog({ item, open, onOpenChange, onSubmit, isLoading }: EditItemDialogProps) {
+  const { toast } = useToast();
   const [images, setImages] = useState<ImageItem[]>(
     (item.images || []).map(url => ({
       type: 'existing' as const,
@@ -86,23 +87,57 @@ export default function EditItemDialog({ item, open, onOpenChange, onSubmit, isL
     );
   }, [item, form]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files).slice(0, 5 - images.length);
+      const selectedFiles = Array.from(e.target.files).slice(0, 5 - images.length);
       
-      // Create new image items with previews
-      newFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const preview = e.target?.result as string;
-          setImages(prev => [...prev, {
-            type: 'new',
-            file,
-            preview,
-          }]);
-        };
-        reader.readAsDataURL(file);
-      });
+      for (const file of selectedFiles) {
+        try {
+          let processedFile = file;
+          
+          // Convert HEIC to JPEG
+          if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+            toast({
+              title: "Converting HEIC image",
+              description: `Converting ${file.name} to JPEG...`,
+            });
+            
+            const convertedBlob = await heic2any({
+              blob: file,
+              toType: 'image/jpeg',
+              quality: 0.9,
+            });
+            
+            // heic2any can return an array of blobs for multi-image HEIC files
+            const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+            
+            processedFile = new File(
+              [blob], 
+              file.name.replace(/\.heic$/i, '.jpg'),
+              { type: 'image/jpeg' }
+            );
+          }
+          
+          // Create preview
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const preview = e.target?.result as string;
+            setImages(prev => [...prev, {
+              type: 'new',
+              file: processedFile,
+              preview,
+            }]);
+          };
+          reader.readAsDataURL(processedFile);
+        } catch (error) {
+          console.error('Error processing image:', error);
+          toast({
+            title: "Error processing image",
+            description: `Failed to process ${file.name}. Please try another image.`,
+            variant: "destructive",
+          });
+        }
+      }
     }
   };
 
@@ -259,7 +294,7 @@ export default function EditItemDialog({ item, open, onOpenChange, onSubmit, isL
                     </span>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,.heic,.HEIC"
                       multiple
                       onChange={handleImageUpload}
                       className="hidden"

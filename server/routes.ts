@@ -5,8 +5,55 @@ import { insertItemSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 import multer from "multer";
 import { ObjectStorageService } from "./objectStorage";
+import sharp from "sharp";
+// @ts-ignore - heic-convert doesn't have TypeScript definitions
+import heicConvert from "heic-convert";
 
 const upload = multer({ storage: multer.memoryStorage() });
+
+// Helper function to process images (convert HEIC and resize)
+async function processImage(buffer: Buffer, originalname: string, mimetype: string): Promise<{ buffer: Buffer, filename: string, mimetype: string }> {
+  let processedBuffer = buffer;
+  let outputFilename = originalname;
+  let outputMimetype = mimetype;
+
+  // Convert HEIC to JPEG if needed
+  if (mimetype === 'image/heic' || originalname.toLowerCase().endsWith('.heic')) {
+    console.log(`Converting HEIC image: ${originalname}`);
+    const jpegBuffer = await heicConvert({
+      buffer,
+      format: 'JPEG',
+      quality: 0.9,
+    });
+    processedBuffer = Buffer.from(jpegBuffer);
+    outputFilename = originalname.replace(/\.heic$/i, '.jpg');
+    outputMimetype = 'image/jpeg';
+  }
+
+  // Resize and compress image using Sharp
+  // Max width: 1920px, max height: 1920px, maintain aspect ratio
+  const resizedBuffer = await sharp(processedBuffer)
+    .resize(1920, 1920, {
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .jpeg({
+      quality: 85,
+      progressive: true,
+    })
+    .toBuffer();
+
+  // Ensure output filename has .jpg extension
+  if (!outputFilename.toLowerCase().endsWith('.jpg') && !outputFilename.toLowerCase().endsWith('.jpeg')) {
+    outputFilename = outputFilename.replace(/\.[^.]+$/, '.jpg');
+  }
+
+  return {
+    buffer: resizedBuffer,
+    filename: outputFilename,
+    mimetype: 'image/jpeg',
+  };
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup username/password authentication
@@ -75,10 +122,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const objectStorageService = new ObjectStorageService();
         
         for (const file of files) {
+          // Process image (convert HEIC and resize)
+          const processed = await processImage(file.buffer, file.originalname, file.mimetype);
+          
           const publicUrl = await objectStorageService.uploadFile(
-            file.buffer,
-            file.originalname,
-            file.mimetype
+            processed.buffer,
+            processed.filename,
+            processed.mimetype
           );
           imageUrls.push(publicUrl);
         }
@@ -129,10 +179,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const objectStorageService = new ObjectStorageService();
         
         for (const file of files) {
+          // Process image (convert HEIC and resize)
+          const processed = await processImage(file.buffer, file.originalname, file.mimetype);
+          
           const publicUrl = await objectStorageService.uploadFile(
-            file.buffer,
-            file.originalname,
-            file.mimetype
+            processed.buffer,
+            processed.filename,
+            processed.mimetype
           );
           newImageUrls.push(publicUrl);
         }
