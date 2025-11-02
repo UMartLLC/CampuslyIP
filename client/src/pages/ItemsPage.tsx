@@ -290,14 +290,20 @@ export default function ItemsPage() {
           </div>
 
           {filteredItems.length === 0 && !isLoading ? (
-            <div className="flex flex-col items-center justify-center py-16 px-4">
-              <div className="text-center space-y-4 max-w-md">
-                <h3 className="text-xl font-semibold">No items found</h3>
-                <p className="text-muted-foreground">
-                  No items match your current filters. Try adjusting or clearing your filters to see more results.
-                </p>
+            <div className="flex flex-col items-center justify-center py-16 px-4" data-testid="empty-state">
+              <div className="rounded-full bg-muted p-6 mb-4">
+                <Search className="h-12 w-12 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-2">
+                {searchQuery ? 'No Items Found' : 'No items available'}
+              </h3>
+              <p className="text-muted-foreground max-w-md mb-6 text-center">
+                {searchQuery 
+                  ? `We couldn't find any items matching "${searchQuery}". Try a different search term or browse all items.`
+                  : 'No items match your current filters. Try adjusting your filters or check back later.'}
+              </p>
+              {(searchQuery || selectedSubcategories.length > 0 || selectedConditions.length > 0 || expandedCategories.length > 0) && (
                 <Button
-                  variant="outline"
                   onClick={() => {
                     setExpandedCategories([]);
                     setSelectedSubcategories([]);
@@ -309,7 +315,7 @@ export default function ItemsPage() {
                 >
                   Clear All Filters
                 </Button>
-              </div>
+              )}
             </div>
           ) : (
             <ItemsGrid
