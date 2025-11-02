@@ -460,7 +460,7 @@ export default function AccountPage() {
                                 <div className="flex justify-between items-center gap-2">
                                   <span className="text-xl font-bold">${item.price}</span>
                                   <Button 
-                                    variant="outline" 
+                                    variant="default" 
                                     size="sm"
                                     onClick={() => repostItemMutation.mutate(item.id)}
                                     disabled={repostItemMutation.isPending}
