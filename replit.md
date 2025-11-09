@@ -9,6 +9,9 @@ The application is built as a full-stack TypeScript monorepo with a React fronte
 **Recent Updates (Nov 9, 2024):**
 - Implemented favorites/like feature: users can like items from marketplace, view favorites in Account page
 - Updated user profile dropdown menu to include all account sections (Dashboard, My Market, Items History, Favorites, My Bids, My Purchases, My LocoLoco, Report a Concern, Legal)
+- Fixed cart page navigation: "Browse Items" and "Continue Shopping" now route to marketplace (/items) instead of home page
+- Added item counts to category/subcategory filters: displays number of available items next to each filter option
+- Optimized filter count performance: using useMemo with Map for O(n) preprocessing and O(1) lookups
 - Consolidated duplicate sell pages: removed legacy `/add-item` route and `AddItemPage`
 - All "Sell Items" buttons now route to the unified `/sell` page (SellPage)
 - Cleaned up unused `AddItemForm` component
@@ -160,6 +163,8 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
   - Expanding a category immediately filters to show all items in that category
   - Selecting subcategories further narrows results within the category
   - Visual feedback with accent colors for active filters
+  - Item counts displayed next to each category/subcategory showing available items
+  - Performance-optimized count calculations using useMemo and Map data structures
   - Empty state message when no items match with clear filters button
 - Advanced filtering (category, subcategory, condition)
 - **Site-wide search functionality**: Search bar in header navigates to marketplace with results filtered by query
@@ -188,6 +193,7 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
   - Remove individual items or clear entire cart
   - Duplicate prevention (same item can't be added twice)
   - Order summary with total calculation
+  - "Browse Items" and "Continue Shopping" buttons route to marketplace
   - Anonymous seller display for user privacy
 
 **Messaging System:**

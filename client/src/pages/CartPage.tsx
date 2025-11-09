@@ -106,7 +106,7 @@ export default function CartPage() {
             <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-lg font-medium mb-2">Your cart is empty</p>
             <p className="text-muted-foreground mb-4">Browse items and add them to your cart</p>
-            <Link href="/">
+            <Link href="/items">
               <Button data-testid="button-browse-items">
                 Browse Items
               </Button>
@@ -197,7 +197,7 @@ export default function CartPage() {
                 <Button className="w-full" size="lg" data-testid="button-checkout">
                   Proceed to Checkout
                 </Button>
-                <Link href="/">
+                <Link href="/items">
                   <Button variant="outline" className="w-full" data-testid="button-continue-shopping">
                     Continue Shopping
                   </Button>

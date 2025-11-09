@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import ItemsGrid from "@/components/ItemsGrid";
 import PaymentModal from "@/components/PaymentModal";
@@ -36,6 +36,27 @@ export default function ItemsPage() {
 
   const categories = getAllCategories();
   const conditions = ["new", "like-new", "good", "fair"];
+
+  // Precompute item counts for categories and subcategories efficiently
+  const { categoryCount, subcategoryCount } = useMemo(() => {
+    const catCount = new Map<string, number>();
+    const subCount = new Map<string, number>();
+
+    items.forEach(item => {
+      // Count by category
+      catCount.set(item.category, (catCount.get(item.category) || 0) + 1);
+      
+      // Count by subcategory
+      if (item.subcategory) {
+        subCount.set(item.subcategory, (subCount.get(item.subcategory) || 0) + 1);
+      }
+    });
+
+    return {
+      categoryCount: catCount,
+      subcategoryCount: subCount,
+    };
+  }, [items]);
 
   const toggleCategory = (category: string) => {
     const isCurrentlyExpanded = expandedCategories.includes(category);
@@ -162,8 +183,11 @@ export default function ItemsPage() {
                         <div className="h-2 w-2 bg-primary-foreground rounded-[1px]" />
                       )}
                     </div>
-                    <span className={cn(isActiveFilter && "font-medium")}>
+                    <span className={cn(isActiveFilter && "font-medium", "flex-1")}>
                       {category}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      ({categoryCount.get(category) || 0})
                     </span>
                   </button>
                   
@@ -179,10 +203,13 @@ export default function ItemsPage() {
                           />
                           <Label
                             htmlFor={`subcategory-${subcategory}`}
-                            className="text-sm font-normal cursor-pointer"
+                            className="text-sm font-normal cursor-pointer flex-1"
                           >
                             {subcategory}
                           </Label>
+                          <span className="text-xs text-muted-foreground">
+                            ({subcategoryCount.get(subcategory) || 0})
+                          </span>
                         </div>
                       ))}
                     </div>
