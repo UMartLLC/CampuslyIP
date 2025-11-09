@@ -7,6 +7,8 @@ CampusMarket (also referred to as UniMart) is a student-focused marketplace plat
 The application is built as a full-stack TypeScript monorepo with a React frontend and Express backend, designed to be student-friendly with community-focused aesthetics inspired by Etsy, Facebook Marketplace, and Venmo.
 
 **Recent Updates (Nov 9, 2024):**
+- Implemented favorites/like feature: users can like items from marketplace, view favorites in Account page
+- Updated user profile dropdown menu to include all account sections (Dashboard, My Market, Items History, Favorites, My Bids, My Purchases, My LocoLoco, Report a Concern, Legal)
 - Consolidated duplicate sell pages: removed legacy `/add-item` route and `AddItemPage`
 - All "Sell Items" buttons now route to the unified `/sell` page (SellPage)
 - Cleaned up unused `AddItemForm` component
@@ -66,12 +68,14 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
 - **Users table**: Authentication and profile data (id, username, email, password, firstName, lastName, profileImageUrl)
 - **Items table**: Marketplace listings with seller references, pricing, images, categories, conditions, status tracking, and soft-delete support (deletedAt field)
 - **Cart Items table**: Shopping cart persistence (id, userId, itemId, createdAt) with duplicate prevention
+- **Favorites table**: User's liked items (id, userId, itemId, createdAt) - automatically filters out sold/deleted items
 - UUID primary keys with PostgreSQL's `gen_random_uuid()`
 - Relational integrity via foreign key constraints
 - Soft delete implementation for items (deletedAt timestamp instead of hard delete)
 - PublicUser type excludes password field for API responses
 - ItemWithSeller type joins items with sanitized seller data
 - CartItemWithDetails type joins cart items with full item and seller data
+- FavoriteWithDetails type joins favorites with full item and seller data
 
 **Data Persistence:**
 - All items and users stored in PostgreSQL database
@@ -87,6 +91,9 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
 - `/api/cart` POST - Add item to cart (prevents duplicates)
 - `/api/cart/:itemId` DELETE - Remove specific item from cart
 - `/api/cart` DELETE - Clear entire cart
+- `/api/favorites` GET - Retrieve user's favorited items (automatically excludes sold/deleted items)
+- `/api/favorites` POST - Add item to favorites (with Zod validation, prevents duplicates)
+- `/api/favorites/:itemId` DELETE - Remove item from favorites
 - `/public-objects/:filePath` - Public image/file retrieval from object storage
 - All authenticated endpoints include session cookies via TanStack Query default fetcher
 - Standardized error handling middleware
@@ -159,6 +166,12 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
 - Sorting options (price, date, relevance)
 - Item condition classification (new, like-new, good, fair)
 - Status tracking (available, sold, pending)
+- **Favorites/Like functionality**:
+  - Heart button on each item card in marketplace
+  - Optimistic UI updates with proper rollback on error
+  - Liked items appear in Account → Favorites section
+  - Sold/deleted items automatically removed from favorites
+  - React Query cache invalidation keeps favorites in sync across views
 - **Image management with carousel navigation**:
   - Up to 5 images per listing
   - Carousel display on marketplace cards (arrows + dots when multiple images)
@@ -194,6 +207,10 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
 
 **User Account Management:**
 - Dashboard with profile settings
+- **User dropdown menu**: Click person icon in header to access all account sections
+  - Includes: Dashboard, My Market, Items History, Favorites, My Bids, My Purchases, My LocoLoco, Report a Concern, Legal
+  - Each link navigates to `/account?tab=<section>` for direct access
+  - Icons match sidebar menu for consistency
 - "My Market" - seller's active listings with full management capabilities
   - Shows only non-deleted, available items
   - Always-visible "Sell Item" button for adding new listings
@@ -205,6 +222,12 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
   - Deleted items displayed with grayscale images and reduced opacity
   - Repost functionality to restore deleted items back to marketplace
   - Includes all items regardless of deletedAt status
+- "Favorites" - user's liked items
+  - Grid display of favorited items using ItemCard component
+  - Automatically excludes sold/deleted items (filtered in backend)
+  - Empty state with "Browse Marketplace" call-to-action
+  - Clicking item navigates to detail page
+  - Heart icons show as filled/active
 - "My Bids" - bid tracking and notifications
 - "My Purchases" - purchase history with sorting
 - Report concern form with admin notification

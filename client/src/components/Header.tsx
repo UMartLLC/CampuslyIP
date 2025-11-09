@@ -1,4 +1,4 @@
-import { Search, User, ShoppingBag, Menu, Moon, Sun, MessageCircle, LogOut, ShoppingCart } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, Moon, Sun, MessageCircle, LogOut, ShoppingCart, Package, History, Heart, Gavel, Megaphone, AlertTriangle, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -141,15 +141,63 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   {user?.username || `${user?.firstName} ${user?.lastName}`}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/account" data-testid="link-account">
+                  <Link href="/account?tab=dashboard" data-testid="link-dashboard">
                     <User className="h-4 w-4 mr-2" />
-                    My Account
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/account?tab=market" data-testid="link-my-market">
+                    <Package className="h-4 w-4 mr-2" />
+                    My Market
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/account?tab=history" data-testid="link-items-history">
+                    <History className="h-4 w-4 mr-2" />
+                    Items History
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/account?tab=favorites" data-testid="link-favorites">
+                    <Heart className="h-4 w-4 mr-2" />
+                    Favorites
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/account?tab=bids" data-testid="link-my-bids">
+                    <Gavel className="h-4 w-4 mr-2" />
+                    My Bids
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/account?tab=purchases" data-testid="link-my-purchases">
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    My Purchases
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/account?tab=locoloco" data-testid="link-my-locoloco">
+                    <Megaphone className="h-4 w-4 mr-2" />
+                    My LocoLoco
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/account?tab=report" data-testid="link-report-concern">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Report a Concern
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/account?tab=legal" data-testid="link-legal">
+                    <Scale className="h-4 w-4 mr-2" />
+                    Legal
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
