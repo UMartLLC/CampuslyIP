@@ -94,38 +94,21 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur hover:bg-white transition-all shadow-md"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur hover:bg-white transition-all shadow-lg z-10"
                 onClick={goToPreviousImage}
                 data-testid={`button-prev-image-${item.id}`}
               >
-                <ChevronLeft className="h-5 w-5 text-gray-600" />
+                <ChevronLeft className="h-6 w-6 text-gray-700" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur hover:bg-white transition-all shadow-md"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur hover:bg-white transition-all shadow-lg z-10"
                 onClick={goToNextImage}
                 data-testid={`button-next-image-${item.id}`}
               >
-                <ChevronRight className="h-5 w-5 text-gray-600" />
+                <ChevronRight className="h-6 w-6 text-gray-700" />
               </Button>
-              
-              {/* Image Indicators (Dots) */}
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {images.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={(e) => goToImage(e, index)}
-                    className={cn(
-                      "w-2 h-2 rounded-full transition-all",
-                      currentImageIndex === index 
-                        ? "bg-white w-6" 
-                        : "bg-white/60 hover:bg-white/80"
-                    )}
-                    data-testid={`button-image-indicator-${item.id}-${index}`}
-                  />
-                ))}
-              </div>
             </>
           )}
         </div>
