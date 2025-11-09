@@ -573,37 +573,50 @@ export default function AccountPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Report a Concern</CardTitle>
-                  <CardDescription>Let us know about any issues or concerns</CardDescription>
+                  <CardDescription>
+                    Describe your issue in detail so we can help you resolve it quickly
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="concern-title">Title</Label>
-                    <Input id="concern-title" placeholder="Brief description of the concern" data-testid="input-concern-title" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="concern-type">Type of Concern</Label>
+                    <Label htmlFor="concern-type" className="text-base font-semibold">
+                      What type of issue are you experiencing? <span className="text-destructive">*</span>
+                    </Label>
                     <Select>
                       <SelectTrigger id="concern-type" data-testid="select-concern-type">
-                        <SelectValue placeholder="Select concern type" />
+                        <SelectValue placeholder="Select issue type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="scam" data-testid="select-item-scam">Scam or Fraud</SelectItem>
-                        <SelectItem value="inappropriate" data-testid="select-item-inappropriate">Inappropriate Content</SelectItem>
-                        <SelectItem value="technical" data-testid="select-item-technical">Technical Issue</SelectItem>
+                        <SelectItem value="purchase" data-testid="select-item-purchase">Purchase Related Issue</SelectItem>
+                        <SelectItem value="fraud" data-testid="select-item-fraud">Fraud or Scam</SelectItem>
+                        <SelectItem value="site" data-testid="select-item-site">Website or Technical Issue</SelectItem>
                         <SelectItem value="other" data-testid="select-item-other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                    <p className="text-sm text-muted-foreground">
+                      Choose the category that best describes your concern
+                    </p>
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="concern-description">Description</Label>
+                    <Label htmlFor="concern-description" className="text-base font-semibold">
+                      Describe EXACTLY what the issue is <span className="text-destructive">*</span>
+                    </Label>
                     <Textarea 
                       id="concern-description" 
-                      placeholder="Please provide details about your concern" 
-                      rows={5}
+                      placeholder="Please provide specific details:&#10;&#10;• What happened?&#10;• When did it occur?&#10;• What item or transaction is involved (if applicable)?&#10;• What did you expect to happen?&#10;• Include any relevant order numbers, usernames, or item IDs" 
+                      rows={10}
                       data-testid="textarea-concern-description"
+                      className="resize-none"
                     />
+                    <p className="text-sm text-muted-foreground">
+                      The more specific you are, the faster we can resolve your issue. Include dates, times, item names, transaction details, and any error messages you received.
+                    </p>
                   </div>
-                  <Button data-testid="button-submit-report">Submit Report</Button>
+
+                  <Button data-testid="button-submit-report" className="w-full">
+                    Submit Report
+                  </Button>
                 </CardContent>
               </Card>
             )}
