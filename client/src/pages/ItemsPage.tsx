@@ -16,7 +16,6 @@ export default function ItemsPage() {
   const [location] = useLocation();
   const [selectedItem, setSelectedItem] = useState<ItemWithSeller | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
@@ -127,6 +126,115 @@ export default function ItemsPage() {
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">
+      {/* Sidebar */}
+      <div className="w-64 border-r bg-card flex flex-col overflow-y-auto">
+        <div className="p-4 border-b flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4" />
+            <h2 className="font-semibold">Filters</h2>
+          </div>
+        </div>
+        
+        <div className="flex-1 p-4 space-y-6">
+          {/* Categories with expandable subcategories */}
+          <div className="space-y-2">
+            <h3 className="font-medium text-sm mb-3">Categories</h3>
+            {categories.map((category) => {
+              const subcategories = CATEGORY_CONFIG[category as keyof typeof CATEGORY_CONFIG].subcategories;
+              const isExpanded = expandedCategories.includes(category);
+              const hasSelectedSubcategories = subcategories.some(sub => selectedSubcategories.includes(sub));
+              const isActiveFilter = isExpanded || hasSelectedSubcategories;
+              
+              return (
+                <div key={category} className="space-y-1">
+                  <button
+                    onClick={() => toggleCategory(category)}
+                    className="flex items-center space-x-2 w-full text-sm hover-elevate active-elevate-2 px-2 py-1.5 rounded-md"
+                    data-testid={`button-category-${category.toLowerCase()}`}
+                  >
+                    <div
+                      className={cn(
+                        "h-4 w-4 border rounded-sm transition-colors flex items-center justify-center",
+                        isExpanded ? "bg-primary border-primary" : "border-input"
+                      )}
+                    >
+                      {isExpanded && (
+                        <div className="h-2 w-2 bg-primary-foreground rounded-[1px]" />
+                      )}
+                    </div>
+                    <span className={cn(isActiveFilter && "font-medium")}>
+                      {category}
+                    </span>
+                  </button>
+                  
+                  {isExpanded && (
+                    <div className="ml-4 space-y-2 pt-1 pb-2">
+                      {subcategories.map((subcategory) => (
+                        <div key={subcategory} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`subcategory-${subcategory}`}
+                            checked={selectedSubcategories.includes(subcategory)}
+                            onCheckedChange={() => handleSubcategoryToggle(subcategory)}
+                            data-testid={`checkbox-subcategory-${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
+                          />
+                          <Label
+                            htmlFor={`subcategory-${subcategory}`}
+                            className="text-sm font-normal cursor-pointer"
+                          >
+                            {subcategory}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Condition */}
+          <div className="space-y-3">
+            <h3 className="font-medium text-sm">Condition</h3>
+            <div className="space-y-2">
+              {conditions.map((condition) => (
+                <div key={condition} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`condition-${condition}`}
+                    checked={selectedConditions.includes(condition)}
+                    onCheckedChange={() => handleConditionToggle(condition)}
+                    data-testid={`checkbox-condition-${condition}`}
+                  />
+                  <Label
+                    htmlFor={`condition-${condition}`}
+                    className="text-sm font-normal cursor-pointer capitalize"
+                  >
+                    {condition.replace('-', ' ')}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Clear Filters */}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              setExpandedCategories([]);
+              setSelectedSubcategories([]);
+              setSelectedConditions([]);
+              setSearchQuery("");
+              window.history.pushState({}, '', '/items');
+            }}
+            data-testid="button-clear-filters"
+          >
+            Clear All Filters
+          </Button>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto px-4 py-8">
