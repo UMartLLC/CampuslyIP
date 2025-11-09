@@ -1,7 +1,7 @@
 // Referenced from blueprint:javascript_auth_all_persistance
-import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, type CartItem, type CartItemWithDetails, users, items, cartItems } from "@shared/schema";
+import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, type CartItem, type CartItemWithDetails, type Favorite, type FavoriteWithDetails, users, items, cartItems, favorites } from "@shared/schema";
 import { db } from "./db";
-import { eq, isNull, and } from "drizzle-orm";
+import { eq, isNull, and, notInArray } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 
@@ -26,6 +26,11 @@ export interface IStorage {
   addToCart(userId: string, itemId: string): Promise<CartItem>;
   removeFromCart(userId: string, itemId: string): Promise<boolean>;
   clearCart(userId: string): Promise<void>;
+  
+  getFavorites(userId: string): Promise<FavoriteWithDetails[]>;
+  addFavorite(userId: string, itemId: string): Promise<Favorite>;
+  removeFavorite(userId: string, itemId: string): Promise<boolean>;
+  isFavorite(userId: string, itemId: string): Promise<boolean>;
   
   sessionStore: session.Store;
 }
@@ -212,6 +217,72 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(cartItems)
       .where(eq(cartItems.userId, userId));
+  }
+
+  async getFavorites(userId: string): Promise<FavoriteWithDetails[]> {
+    const result = await db
+      .select()
+      .from(favorites)
+      .leftJoin(items, eq(favorites.itemId, items.id))
+      .leftJoin(users, eq(items.sellerId, users.id))
+      .where(eq(favorites.userId, userId));
+    
+    return result
+      .filter(row => row.items && row.items.status !== 'sold' && !row.items.deletedAt)
+      .map(row => {
+        if (!row.items) {
+          throw new Error(`Item not found for favorite ${row.favorites.id}`);
+        }
+        if (!row.users) {
+          throw new Error(`Seller not found for item ${row.items.id}`);
+        }
+        const publicSeller: PublicUser = row.users;
+        const itemWithSeller: ItemWithSeller = {
+          ...row.items,
+          seller: publicSeller,
+        };
+        return {
+          ...row.favorites,
+          item: itemWithSeller,
+        };
+      });
+  }
+
+  async addFavorite(userId: string, itemId: string): Promise<Favorite> {
+    // Check if item is already favorited
+    const [existing] = await db
+      .select()
+      .from(favorites)
+      .where(and(eq(favorites.userId, userId), eq(favorites.itemId, itemId)));
+    
+    if (existing) {
+      return existing;
+    }
+
+    const [favorite] = await db
+      .insert(favorites)
+      .values({
+        userId,
+        itemId,
+      })
+      .returning();
+    return favorite;
+  }
+
+  async removeFavorite(userId: string, itemId: string): Promise<boolean> {
+    const result = await db
+      .delete(favorites)
+      .where(and(eq(favorites.userId, userId), eq(favorites.itemId, itemId)))
+      .returning();
+    return result.length > 0;
+  }
+
+  async isFavorite(userId: string, itemId: string): Promise<boolean> {
+    const [favorite] = await db
+      .select()
+      .from(favorites)
+      .where(and(eq(favorites.userId, userId), eq(favorites.itemId, itemId)));
+    return !!favorite;
   }
 }
 
