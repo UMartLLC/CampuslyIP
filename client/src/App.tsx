@@ -20,6 +20,9 @@ import LocoLocoPage from "@/pages/LocoLocoPage";
 import ShopByCategoryPage from "@/pages/ShopByCategoryPage";
 import DesignRoomPage from "@/pages/DesignRoomPage";
 import TermsPage from "@/pages/TermsPage";
+import FAQPage from "@/pages/FAQPage";
+import PrivacyPage from "@/pages/PrivacyPage";
+import AboutPage from "@/pages/AboutPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -36,6 +39,9 @@ function Router() {
       <ProtectedRoute path="/shop-by-category" component={ShopByCategoryPage} />
       <ProtectedRoute path="/design-room" component={DesignRoomPage} />
       <ProtectedRoute path="/terms" component={TermsPage} />
+      <ProtectedRoute path="/faq" component={FAQPage} />
+      <ProtectedRoute path="/privacy" component={PrivacyPage} />
+      <ProtectedRoute path="/about" component={AboutPage} />
       <Route component={NotFound} />
     </Switch>
   );
