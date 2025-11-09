@@ -83,12 +83,12 @@ export default function Footer() {
 
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
           <div className="flex flex-wrap justify-center gap-4 mb-4">
-            <Link href="/terms">
+            <Link href="/account?tab=legal#terms">
               <Button variant="link" className="text-muted-foreground h-auto p-0" data-testid="link-footer-terms">
                 Terms & Conditions
               </Button>
             </Link>
-            <Link href="/privacy">
+            <Link href="/account?tab=legal#privacy">
               <Button variant="link" className="text-muted-foreground h-auto p-0" data-testid="link-footer-privacy">
                 Privacy Policy
               </Button>
