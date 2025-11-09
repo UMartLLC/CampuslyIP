@@ -94,7 +94,7 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur hover:bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur hover:bg-white transition-all shadow-md"
                 onClick={goToPreviousImage}
                 data-testid={`button-prev-image-${item.id}`}
               >
@@ -103,7 +103,7 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur hover:bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur hover:bg-white transition-all shadow-md"
                 onClick={goToNextImage}
                 data-testid={`button-next-image-${item.id}`}
               >
