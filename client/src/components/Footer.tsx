@@ -22,6 +22,11 @@ export default function Footer() {
                   FAQ
                 </Button>
               </Link>
+              <Link href="/account?tab=legal">
+                <Button variant="ghost" className="justify-start p-0 h-auto" data-testid="link-legal">
+                  Legal
+                </Button>
+              </Link>
               <Link href="/messages?contact=support">
                 <Button variant="ghost" className="justify-start p-0 h-auto" data-testid="link-contact-us">
                   Contact Us
