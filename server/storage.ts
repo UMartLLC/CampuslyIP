@@ -227,25 +227,32 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(items.sellerId, users.id))
       .where(eq(favorites.userId, userId));
     
-    return result
-      .filter(row => row.items && row.items.status !== 'sold' && !row.items.deletedAt)
-      .map(row => {
-        if (!row.items) {
-          throw new Error(`Item not found for favorite ${row.favorites.id}`);
-        }
-        if (!row.users) {
-          throw new Error(`Seller not found for item ${row.items.id}`);
-        }
-        const publicSeller: PublicUser = row.users;
-        const itemWithSeller: ItemWithSeller = {
-          ...row.items,
-          seller: publicSeller,
-        };
-        return {
-          ...row.favorites,
-          item: itemWithSeller,
-        };
+    const validResults: FavoriteWithDetails[] = [];
+    
+    for (const row of result) {
+      // Skip if item doesn't exist, is deleted, or is sold
+      if (!row.items || row.items.deletedAt || row.items.status === 'sold') {
+        continue;
+      }
+      
+      // Skip if seller doesn't exist (shouldn't happen with proper foreign keys)
+      if (!row.users) {
+        continue;
+      }
+      
+      const publicSeller: PublicUser = row.users;
+      const itemWithSeller: ItemWithSeller = {
+        ...row.items,
+        seller: publicSeller,
+      };
+      
+      validResults.push({
+        ...row.favorites,
+        item: itemWithSeller,
       });
+    }
+    
+    return validResults;
   }
 
   async addFavorite(userId: string, itemId: string): Promise<Favorite> {

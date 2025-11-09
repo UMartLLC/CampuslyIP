@@ -6,15 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Plus, Trash2, History, RotateCcw, Pencil, Scale } from "lucide-react";
+import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Plus, Trash2, History, RotateCcw, Pencil, Scale, Heart } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import type { Item } from "@shared/schema";
+import type { Item, FavoriteWithDetails } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import EditItemDialog from "@/components/EditItemDialog";
+import ItemCard from "@/components/ItemCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,6 +76,12 @@ export default function AccountPage() {
   const { data: allUserItems = [], isLoading: isLoadingHistory } = useQuery<Item[]>({
     queryKey: [`/api/items?sellerId=${user?.id}&includeDeleted=true`],
     enabled: !!user?.id && activeSection === "history",
+  });
+
+  // Fetch user's favorites
+  const { data: favorites = [], isLoading: isLoadingFavorites } = useQuery<FavoriteWithDetails[]>({
+    queryKey: ['/api/favorites'],
+    enabled: !!user?.id && activeSection === "favorites",
   });
 
   const deleteItemMutation = useMutation({
@@ -183,6 +190,7 @@ export default function AccountPage() {
     { id: "dashboard", label: "Dashboard", icon: User },
     { id: "market", label: "My Market", icon: Package },
     { id: "history", label: "Items History", icon: History },
+    { id: "favorites", label: "Favorites", icon: Heart },
     { id: "bids", label: "My Bids", icon: Gavel },
     { id: "purchases", label: "My Purchases", icon: ShoppingCart },
     { id: "locoloco", label: "My LocoLoco", icon: Megaphone },
@@ -543,6 +551,48 @@ export default function AccountPage() {
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Favorites Section */}
+            {activeSection === "favorites" && (
+              <>
+                <div className="mb-6">
+                  <div>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide mb-1">YOUR FAVORITES</p>
+                    <h1 className="text-2xl font-bold">Favorites</h1>
+                    <p className="text-sm text-muted-foreground mt-2">Items you've liked will appear here. Sold or deleted items are automatically removed.</p>
+                  </div>
+                </div>
+                
+                {isLoadingFavorites ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Loading your favorites...</p>
+                  </div>
+                ) : favorites.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-lg font-medium mb-2">No favorites yet</p>
+                      <p className="text-muted-foreground mb-4">Start browsing the marketplace to find items you love!</p>
+                      <Button onClick={() => setLocation('/items')} data-testid="button-browse-marketplace">
+                        Browse Marketplace
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {favorites.map((favorite) => (
+                      <ItemCard
+                        key={favorite.id}
+                        item={favorite.item}
+                        isFavorited={true}
+                        onViewDetails={() => setLocation(`/items/${favorite.item.id}`)}
+                        onContact={() => console.log('Contact seller:', favorite.item.seller.username)}
+                      />
+                    ))}
                   </div>
                 )}
               </>

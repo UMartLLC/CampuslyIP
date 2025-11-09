@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertItemSchema } from "@shared/schema";
+import { insertItemSchema, insertFavoriteSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 import multer from "multer";
 import { ObjectStorageService } from "./objectStorage";
@@ -330,10 +330,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Favorites endpoints
   app.get("/api/favorites", async (req, res) => {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
       const favorites = await storage.getFavorites(req.user.id);
       res.json(favorites);
     } catch (error) {
@@ -343,27 +344,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/favorites", async (req, res) => {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      const { itemId } = req.body;
-      if (!itemId) {
-        return res.status(400).json({ message: "Item ID is required" });
-      }
-      const favorite = await storage.addFavorite(req.user.id, itemId);
+      const validatedData = insertFavoriteSchema.parse(req.body);
+      const favorite = await storage.addFavorite(req.user.id, validatedData.itemId);
       res.json(favorite);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
       console.error("Error adding favorite:", error);
       res.status(500).json({ message: "Failed to add favorite" });
     }
   });
 
   app.delete("/api/favorites/:itemId", async (req, res) => {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
       const success = await storage.removeFavorite(req.user.id, req.params.itemId);
       if (!success) {
         return res.status(404).json({ message: "Favorite not found" });

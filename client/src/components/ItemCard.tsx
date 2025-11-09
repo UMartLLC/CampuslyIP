@@ -69,8 +69,8 @@ export default function ItemCard({ item, onViewDetails, onContact, isFavorited =
   });
 
   const toggleFavoriteMutation = useMutation({
-    mutationFn: async () => {
-      if (isLiked) {
+    mutationFn: async (currentLikedState: boolean) => {
+      if (currentLikedState) {
         await apiRequest('DELETE', `/api/favorites/${item.id}`);
         return false;
       } else {
@@ -78,15 +78,19 @@ export default function ItemCard({ item, onViewDetails, onContact, isFavorited =
         return true;
       }
     },
-    onMutate: () => {
-      setIsLiked(!isLiked);
+    onMutate: async () => {
+      const previousState = isLiked;
+      setIsLiked(prev => !prev);
+      return { previousState };
     },
-    onSuccess: (newLikedState) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
       queryClient.invalidateQueries({ queryKey: ['/api/items'] });
     },
-    onError: () => {
-      setIsLiked(!isLiked);
+    onError: (_error, _variables, context) => {
+      if (context?.previousState !== undefined) {
+        setIsLiked(context.previousState);
+      }
       toast({
         title: "Error",
         description: "Failed to update favorite. Please try again.",
@@ -146,7 +150,7 @@ export default function ItemCard({ item, onViewDetails, onContact, isFavorited =
           className="absolute top-2 right-2 bg-white/80 backdrop-blur hover:bg-white/90"
           onClick={(e) => {
             e.stopPropagation();
-            toggleFavoriteMutation.mutate();
+            toggleFavoriteMutation.mutate(isLiked);
           }}
           disabled={toggleFavoriteMutation.isPending}
           data-testid={`button-like-${item.id}`}
