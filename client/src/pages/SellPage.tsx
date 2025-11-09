@@ -26,7 +26,6 @@ const formSchema = z.object({
   category: z.string().min(1, "Category is required"),
   subcategory: z.string().min(1, "Subcategory is required"),
   condition: z.string().min(1, "Condition is required"),
-  contact: z.string().optional(),
 });
 
 export default function SellPage() {
@@ -45,7 +44,6 @@ export default function SellPage() {
       category: "",
       subcategory: "",
       condition: "",
-      contact: "",
     },
   });
 
@@ -439,20 +437,6 @@ export default function SellPage() {
                         {...field}
                         data-testid="textarea-description"
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="contact"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Information (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Phone or email" {...field} data-testid="input-contact" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
