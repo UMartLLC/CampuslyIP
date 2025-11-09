@@ -170,12 +170,12 @@ export default function ItemsPage() {
                 <div key={category} className="space-y-1">
                   <button
                     onClick={() => toggleCategory(category)}
-                    className="flex items-center space-x-2 w-full text-sm hover-elevate active-elevate-2 px-2 py-1.5 rounded-md"
+                    className="flex items-center gap-2 w-full text-sm hover-elevate active-elevate-2 px-2 py-1.5 rounded-md text-left"
                     data-testid={`button-category-${category.toLowerCase()}`}
                   >
                     <div
                       className={cn(
-                        "h-4 w-4 border rounded-sm transition-colors flex items-center justify-center",
+                        "h-4 w-4 border rounded-sm transition-colors flex items-center justify-center flex-shrink-0",
                         isExpanded ? "bg-primary border-primary" : "border-input"
                       )}
                     >
@@ -183,10 +183,10 @@ export default function ItemsPage() {
                         <div className="h-2 w-2 bg-primary-foreground rounded-[1px]" />
                       )}
                     </div>
-                    <span className={cn(isActiveFilter && "font-medium", "flex-1")}>
+                    <span className={cn(isActiveFilter && "font-medium", "flex-1 text-left")}>
                       {category}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground ml-4">
                       ({categoryCount.get(category) || 0})
                     </span>
                   </button>
@@ -194,7 +194,7 @@ export default function ItemsPage() {
                   {isExpanded && (
                     <div className="ml-4 space-y-2 pt-1 pb-2">
                       {subcategories.map((subcategory) => (
-                        <div key={subcategory} className="flex items-center space-x-2">
+                        <div key={subcategory} className="flex items-center gap-2">
                           <Checkbox
                             id={`subcategory-${subcategory}`}
                             checked={selectedSubcategories.includes(subcategory)}
@@ -203,11 +203,11 @@ export default function ItemsPage() {
                           />
                           <Label
                             htmlFor={`subcategory-${subcategory}`}
-                            className="text-sm font-normal cursor-pointer flex-1"
+                            className="text-sm font-normal cursor-pointer flex-1 text-left"
                           >
                             {subcategory}
                           </Label>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground ml-4">
                             ({subcategoryCount.get(subcategory) || 0})
                           </span>
                         </div>
