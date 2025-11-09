@@ -95,21 +95,6 @@ export default function ItemsGrid({ items, onItemClick, onContactSeller }: Items
           </SelectContent>
         </Select>
 
-        {/* Filter Toggle */}
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="relative"
-          data-testid="button-filters"
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          Filters
-          {activeFiltersCount > 0 && (
-            <Badge className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
-              {activeFiltersCount}
-            </Badge>
-          )}
-        </Button>
       </div>
 
       {/* Filter Panel */}
