@@ -10,6 +10,9 @@ The application is built as a full-stack TypeScript monorepo with a React fronte
 - Consolidated duplicate sell pages: removed legacy `/add-item` route and `AddItemPage`
 - All "Sell Items" buttons now route to the unified `/sell` page (SellPage)
 - Cleaned up unused `AddItemForm` component
+- Fixed multi-image upload: all selected images now display correctly (not just the last one)
+- Removed filters sidebar and button from marketplace for cleaner UI
+- Enhanced image carousel navigation: removed dots, made arrows always visible with better styling
 
 ## User Preferences
 

@@ -37,8 +37,8 @@ export default function ItemsGrid({ items, onItemClick, onContactSeller }: Items
   const filteredItems = items.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || item.category === selectedCategory;
-    const matchesCondition = !selectedCondition || item.condition === selectedCondition;
+    const matchesCategory = !selectedCategory || selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesCondition = !selectedCondition || selectedCondition === 'all' || item.condition === selectedCondition;
     const matchesPrice = parseFloat(item.price) <= priceRange[0];
     
     return matchesSearch && matchesCategory && matchesCondition && matchesPrice;
@@ -59,8 +59,8 @@ export default function ItemsGrid({ items, onItemClick, onContactSeller }: Items
 
   const clearFilters = () => {
     setSearchQuery("");
-    setSelectedCategory("");
-    setSelectedCondition("");
+    setSelectedCategory("all");
+    setSelectedCondition("all");
     setPriceRange([1000]);
     setSortBy("newest");
   };
@@ -132,7 +132,7 @@ export default function ItemsGrid({ items, onItemClick, onContactSeller }: Items
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {CATEGORIES.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
@@ -148,7 +148,7 @@ export default function ItemsGrid({ items, onItemClick, onContactSeller }: Items
                   <SelectValue placeholder="Any Condition" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any Condition</SelectItem>
+                  <SelectItem value="all">Any Condition</SelectItem>
                   {CONDITIONS.map(condition => (
                     <SelectItem key={condition} value={condition}>
                       {condition.charAt(0).toUpperCase() + condition.slice(1)}
