@@ -96,32 +96,51 @@ export default function SellPage() {
       for (const file of selectedFiles) {
         try {
           let processedFile = file;
+          let preview: string;
+          
+          // Check if file is HEIC based on file extension (browsers don't always set correct MIME type)
+          const isHEIC = file.name.toLowerCase().endsWith('.heic') || 
+                         file.name.toLowerCase().endsWith('.heif') ||
+                         file.type === 'image/heic' || 
+                         file.type === 'image/heif';
           
           // Convert HEIC to JPEG for preview and upload
-          if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+          if (isHEIC) {
+            console.log('Detected HEIC file:', file.name, 'type:', file.type);
             toast({
               title: "Converting HEIC image",
               description: `Converting ${file.name} to JPEG...`,
             });
             
-            const convertedBlob = await heic2any({
-              blob: file,
-              toType: 'image/jpeg',
-              quality: 0.9,
-            });
-            
-            // heic2any can return an array of blobs for multi-image HEIC files
-            const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-            
-            processedFile = new File(
-              [blob], 
-              file.name.replace(/\.heic$/i, '.jpg'),
-              { type: 'image/jpeg' }
-            );
+            try {
+              const convertedBlob = await heic2any({
+                blob: file,
+                toType: 'image/jpeg',
+                quality: 0.9,
+              });
+              
+              // heic2any can return an array of blobs for multi-image HEIC files
+              const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+              
+              processedFile = new File(
+                [blob], 
+                file.name.replace(/\.(heic|heif)$/i, '.jpg'),
+                { type: 'image/jpeg' }
+              );
+              
+              console.log('Successfully converted HEIC to JPEG');
+              toast({
+                title: "Conversion complete",
+                description: `${file.name} converted successfully`,
+              });
+            } catch (conversionError) {
+              console.error('HEIC conversion error:', conversionError);
+              throw new Error(`HEIC conversion failed: ${conversionError instanceof Error ? conversionError.message : 'Unknown error'}`);
+            }
           }
           
           // Create preview from processed file
-          const preview = await new Promise<string>((resolve, reject) => {
+          preview = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (e) => {
               if (e.target?.result) {
@@ -134,6 +153,8 @@ export default function SellPage() {
             reader.readAsDataURL(processedFile);
           });
           
+          console.log('Preview created for:', file.name);
+          
           // Add image and preview immediately
           setImages(prev => [...prev, processedFile]);
           setImagePreviews(prev => [...prev, preview]);
@@ -142,7 +163,7 @@ export default function SellPage() {
           console.error('Error processing image:', error);
           toast({
             title: "Error processing image",
-            description: `Failed to process ${file.name}. Please try another image.`,
+            description: `Failed to process ${file.name}. ${error instanceof Error ? error.message : 'Please try another image.'}`,
             variant: "destructive",
           });
         }
@@ -283,7 +304,7 @@ export default function SellPage() {
                       </span>
                       <input
                         type="file"
-                        accept="image/*,.heic,.HEIC"
+                        accept="image/*,.heic,.HEIC,.heif,.HEIF"
                         multiple
                         onChange={handleImageUpload}
                         className="hidden"
