@@ -126,7 +126,7 @@ export default function Welcome() {
                     Start Shopping
                   </Button>
                 </Link>
-                <Link href="/add-item">
+                <Link href="/sell">
                   <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" data-testid="button-start-selling">
                     Start Selling
                   </Button>

@@ -6,6 +6,11 @@ CampusMarket (also referred to as UniMart) is a student-focused marketplace plat
 
 The application is built as a full-stack TypeScript monorepo with a React frontend and Express backend, designed to be student-friendly with community-focused aesthetics inspired by Etsy, Facebook Marketplace, and Venmo.
 
+**Recent Updates (Nov 9, 2024):**
+- Consolidated duplicate sell pages: removed legacy `/add-item` route and `AddItemPage`
+- All "Sell Items" buttons now route to the unified `/sell` page (SellPage)
+- Cleaned up unused `AddItemForm` component
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
