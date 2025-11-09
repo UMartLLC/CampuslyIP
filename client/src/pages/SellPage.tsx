@@ -93,14 +93,11 @@ export default function SellPage() {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files).slice(0, 5 - images.length);
       
-      const processedFiles: File[] = [];
-      const previews: string[] = [];
-      
       for (const file of selectedFiles) {
         try {
           let processedFile = file;
           
-          // Convert HEIC to JPEG
+          // Convert HEIC to JPEG for preview and upload
           if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
             toast({
               title: "Converting HEIC image",
@@ -123,17 +120,24 @@ export default function SellPage() {
             );
           }
           
-          processedFiles.push(processedFile);
+          // Create preview from processed file
+          const preview = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              if (e.target?.result) {
+                resolve(e.target.result as string);
+              } else {
+                reject(new Error('Failed to read file'));
+              }
+            };
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(processedFile);
+          });
           
-          // Create preview
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            previews.push(e.target?.result as string);
-            if (previews.length === selectedFiles.length) {
-              setImagePreviews(prev => [...prev, ...previews]);
-            }
-          };
-          reader.readAsDataURL(processedFile);
+          // Add image and preview immediately
+          setImages(prev => [...prev, processedFile]);
+          setImagePreviews(prev => [...prev, preview]);
+          
         } catch (error) {
           console.error('Error processing image:', error);
           toast({
@@ -143,8 +147,6 @@ export default function SellPage() {
           });
         }
       }
-      
-      setImages(prev => [...prev, ...processedFiles]);
     }
   };
 

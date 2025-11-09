@@ -95,7 +95,7 @@ export default function EditItemDialog({ item, open, onOpenChange, onSubmit, isL
         try {
           let processedFile = file;
           
-          // Convert HEIC to JPEG
+          // Convert HEIC to JPEG for preview and upload
           if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
             toast({
               title: "Converting HEIC image",
@@ -118,17 +118,27 @@ export default function EditItemDialog({ item, open, onOpenChange, onSubmit, isL
             );
           }
           
-          // Create preview
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const preview = e.target?.result as string;
-            setImages(prev => [...prev, {
-              type: 'new',
-              file: processedFile,
-              preview,
-            }]);
-          };
-          reader.readAsDataURL(processedFile);
+          // Create preview from processed file
+          const preview = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              if (e.target?.result) {
+                resolve(e.target.result as string);
+              } else {
+                reject(new Error('Failed to read file'));
+              }
+            };
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(processedFile);
+          });
+          
+          // Add image with preview immediately
+          setImages(prev => [...prev, {
+            type: 'new',
+            file: processedFile,
+            preview,
+          }]);
+          
         } catch (error) {
           console.error('Error processing image:', error);
           toast({
