@@ -90,6 +90,8 @@ export default function SellPage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files).slice(0, 5 - images.length);
+      const newImages: File[] = [];
+      const newPreviews: string[] = [];
       
       for (const file of selectedFiles) {
         try {
@@ -153,9 +155,9 @@ export default function SellPage() {
           
           console.log('Preview created for:', file.name);
           
-          // Add image and preview immediately
-          setImages(prev => [...prev, processedFile]);
-          setImagePreviews(prev => [...prev, preview]);
+          // Collect processed images
+          newImages.push(processedFile);
+          newPreviews.push(preview);
           
         } catch (error) {
           console.error('Error processing image:', error);
@@ -165,6 +167,12 @@ export default function SellPage() {
             variant: "destructive",
           });
         }
+      }
+      
+      // Update state once with all new images
+      if (newImages.length > 0) {
+        setImages(prev => [...prev, ...newImages]);
+        setImagePreviews(prev => [...prev, ...newPreviews]);
       }
     }
   };
