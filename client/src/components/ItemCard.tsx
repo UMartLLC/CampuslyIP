@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { ItemWithSeller } from "@shared/schema";
 import { cn } from "@/lib/utils";
@@ -13,10 +13,11 @@ interface ItemCardProps {
   item: ItemWithSeller;
   onViewDetails?: () => void;
   onContact?: () => void;
+  isFavorited?: boolean;
 }
 
-export default function ItemCard({ item, onViewDetails, onContact }: ItemCardProps) {
-  const [isLiked, setIsLiked] = useState(false);
+export default function ItemCard({ item, onViewDetails, onContact, isFavorited = false }: ItemCardProps) {
+  const [isLiked, setIsLiked] = useState(isFavorited);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { toast } = useToast();
   
@@ -62,6 +63,33 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
       toast({
         title: "Error",
         description: "Failed to add item to cart. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async () => {
+      if (isLiked) {
+        await apiRequest('DELETE', `/api/favorites/${item.id}`);
+        return false;
+      } else {
+        await apiRequest('POST', '/api/favorites', { itemId: item.id });
+        return true;
+      }
+    },
+    onMutate: () => {
+      setIsLiked(!isLiked);
+    },
+    onSuccess: (newLikedState) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/items'] });
+    },
+    onError: () => {
+      setIsLiked(!isLiked);
+      toast({
+        title: "Error",
+        description: "Failed to update favorite. Please try again.",
         variant: "destructive",
       });
     },
@@ -118,12 +146,12 @@ export default function ItemCard({ item, onViewDetails, onContact }: ItemCardPro
           className="absolute top-2 right-2 bg-white/80 backdrop-blur hover:bg-white/90"
           onClick={(e) => {
             e.stopPropagation();
-            setIsLiked(!isLiked);
-            console.log('Item liked:', item.id);
+            toggleFavoriteMutation.mutate();
           }}
+          disabled={toggleFavoriteMutation.isPending}
           data-testid={`button-like-${item.id}`}
         >
-          <Heart className={`h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+          <Heart className={`h-4 w-4 transition-colors ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
         </Button>
         <Badge className={`absolute top-2 left-2 ${getConditionColor(item.condition)}`} data-testid={`badge-condition-${item.id}`}>
           {item.condition}
