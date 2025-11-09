@@ -12,7 +12,6 @@ import Footer from "@/components/Footer";
 import AuthPage from "@/pages/AuthPage";
 import Welcome from "@/pages/Welcome";
 import ItemsPage from "@/pages/ItemsPage";
-import AddItemPage from "@/pages/AddItemPage";
 import AccountPage from "@/pages/AccountPage";
 import MessagesPage from "@/pages/MessagesPage";
 import CartPage from "@/pages/CartPage";
@@ -29,7 +28,6 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/" component={Welcome} />
       <ProtectedRoute path="/items" component={ItemsPage} />
-      <ProtectedRoute path="/add-item" component={AddItemPage} />
       <ProtectedRoute path="/account" component={AccountPage} />
       <ProtectedRoute path="/messages" component={MessagesPage} />
       <ProtectedRoute path="/cart" component={CartPage} />
