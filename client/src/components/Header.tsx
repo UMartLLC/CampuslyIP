@@ -1,4 +1,4 @@
-import { Search, User, ShoppingBag, Menu, Moon, Sun, MessageCircle, LogOut, ShoppingCart, Package, History, Heart, Gavel, Megaphone, AlertTriangle, Scale } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, Moon, Sun, MessageCircle, ShoppingCart, Package, History, Heart, Gavel, Megaphone, AlertTriangle, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+// import { useAuth } from "@/hooks/use-auth"; // Authentication temporarily disabled
 import { useQuery } from "@tanstack/react-query";
 import type { CartItemWithDetails } from "@shared/schema";
 
@@ -27,12 +27,12 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [, setLocation] = useLocation();
-  const { user, logoutMutation } = useAuth();
+  // Authentication temporarily disabled
+  // const { user, logoutMutation } = useAuth();
 
   // Fetch cart items
   const { data: cartItems = [] } = useQuery<CartItemWithDetails[]>({
     queryKey: ['/api/cart'],
-    enabled: !!user,
   });
 
   const handleSearch = (e: React.FormEvent) => {
@@ -143,7 +143,7 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
-                  {user?.username || `${user?.firstName} ${user?.lastName}`}
+                  Account
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
@@ -200,11 +200,12 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
                     Legal
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {/* Logout temporarily disabled - authentication removed */}
+                {/* <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => logoutMutation.mutate()} data-testid="button-logout">
                   <LogOut className="h-4 w-4 mr-2" />
                   Log Out
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

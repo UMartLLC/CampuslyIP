@@ -1,15 +1,16 @@
 // Referenced from blueprint:javascript_auth_all_persistance
+// NOTE: Authentication temporarily disabled
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider, useTheme } from "@/components/ThemeProvider";
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
-import { ProtectedRoute } from "@/lib/protected-route";
+import { AuthProvider } from "@/hooks/use-auth";
+// import { ProtectedRoute } from "@/lib/protected-route";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import AuthPage from "@/pages/AuthPage";
+// import AuthPage from "@/pages/AuthPage";
 import Welcome from "@/pages/Welcome";
 import ItemsPage from "@/pages/ItemsPage";
 import AccountPage from "@/pages/AccountPage";
@@ -28,20 +29,21 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <Switch>
-      <Route path="/auth" component={AuthPage} />
-      <ProtectedRoute path="/" component={Welcome} />
-      <ProtectedRoute path="/items" component={ItemsPage} />
-      <ProtectedRoute path="/account" component={AccountPage} />
-      <ProtectedRoute path="/messages" component={MessagesPage} />
-      <ProtectedRoute path="/cart" component={CartPage} />
-      <ProtectedRoute path="/sell" component={SellPage} />
-      <ProtectedRoute path="/locoloco" component={LocoLocoPage} />
-      <ProtectedRoute path="/shop-by-category" component={ShopByCategoryPage} />
-      <ProtectedRoute path="/design-room" component={DesignRoomPage} />
-      <ProtectedRoute path="/terms" component={TermsPage} />
-      <ProtectedRoute path="/faq" component={FAQPage} />
-      <ProtectedRoute path="/privacy" component={PrivacyPage} />
-      <ProtectedRoute path="/about" component={AboutPage} />
+      {/* Authentication temporarily disabled */}
+      {/* <Route path="/auth" component={AuthPage} /> */}
+      <Route path="/" component={Welcome} />
+      <Route path="/items" component={ItemsPage} />
+      <Route path="/account" component={AccountPage} />
+      <Route path="/messages" component={MessagesPage} />
+      <Route path="/cart" component={CartPage} />
+      <Route path="/sell" component={SellPage} />
+      <Route path="/locoloco" component={LocoLocoPage} />
+      <Route path="/shop-by-category" component={ShopByCategoryPage} />
+      <Route path="/design-room" component={DesignRoomPage} />
+      <Route path="/terms" component={TermsPage} />
+      <Route path="/faq" component={FAQPage} />
+      <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/about" component={AboutPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -49,21 +51,20 @@ function Router() {
 
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
-  const { user, isLoading } = useAuth();
+  // Authentication temporarily disabled - always show UI
+  // const { user, isLoading } = useAuth();
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {!isLoading && user && (
-        <Header 
-          onSearch={(query) => console.log('Search:', query)}
-          onToggleTheme={toggleTheme}
-          isDark={theme === 'dark'}
-        />
-      )}
+      <Header 
+        onSearch={(query) => console.log('Search:', query)}
+        onToggleTheme={toggleTheme}
+        isDark={theme === 'dark'}
+      />
       <main className="flex-1">
         <Router />
       </main>
-      {!isLoading && user && <Footer />}
+      <Footer />
     </div>
   );
 }
