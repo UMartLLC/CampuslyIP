@@ -55,10 +55,15 @@ async function processImage(buffer: Buffer, originalname: string, mimetype: stri
   };
 }
 
+// Temporary default user ID for unrestricted access
+// NOTE: Authentication temporarily disabled - all users use this default ID
+const TEMP_USER_ID = "temp-user-id";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup username/password authentication
   // Referenced from blueprint:javascript_auth_all_persistance
-  setupAuth(app);
+  // TEMPORARILY DISABLED - Uncomment to re-enable authentication
+  // setupAuth(app);
   
   // Serve public objects from object storage
   // Referenced from blueprint:javascript_object_storage
@@ -111,9 +116,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/items", upload.array("images", 5), async (req: any, res) => {
-    if (!req.isAuthenticated() || !req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    // AUTHENTICATION TEMPORARILY DISABLED
+    // if (!req.isAuthenticated() || !req.user) {
+    //   return res.status(401).json({ message: "Unauthorized" });
+    // }
     try {
       const files = req.files as Express.Multer.File[];
       const imageUrls: string[] = [];
@@ -142,8 +148,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const validatedItem = insertItemSchema.parse(itemData);
       
-      // Use logged-in user as seller
-      const sellerId = req.user.id;
+      // Use temporary default user (authentication disabled)
+      const sellerId = TEMP_USER_ID;
       const item = await storage.createItem(validatedItem, sellerId);
       
       res.status(201).json(item);
@@ -154,9 +160,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch("/api/items/:id", upload.array("newImages", 5), async (req: any, res) => {
-    if (!req.isAuthenticated() || !req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    // AUTHENTICATION TEMPORARILY DISABLED
+    // if (!req.isAuthenticated() || !req.user) {
+    //   return res.status(401).json({ message: "Unauthorized" });
+    // }
     
     try {
       // Get the item to verify ownership
@@ -165,10 +172,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Item not found" });
       }
       
-      // Verify the user owns this item
-      if (existingItem.sellerId !== req.user.id) {
-        return res.status(403).json({ message: "You can only edit your own items" });
-      }
+      // OWNERSHIP CHECK DISABLED (authentication disabled)
+      // if (existingItem.sellerId !== req.user.id) {
+      //   return res.status(403).json({ message: "You can only edit your own items" });
+      // }
       
       // Handle images
       const files = req.files as Express.Multer.File[];
@@ -271,10 +278,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cart routes
   app.get("/api/cart", async (req, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      const cartItems = await storage.getCartItems(req.user.id);
+      // AUTHENTICATION DISABLED - use temporary user
+      const userId = TEMP_USER_ID;
+      const cartItems = await storage.getCartItems(userId);
       res.json(cartItems);
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -284,14 +290,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/cart", async (req, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      // AUTHENTICATION DISABLED - use temporary user
+      const userId = TEMP_USER_ID;
       const { itemId } = req.body;
       if (!itemId) {
         return res.status(400).json({ message: "Item ID is required" });
       }
-      const cartItem = await storage.addToCart(req.user.id, itemId);
+      const cartItem = await storage.addToCart(userId, itemId);
       res.json(cartItem);
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -301,10 +306,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/cart/:itemId", async (req, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      const success = await storage.removeFromCart(req.user.id, req.params.itemId);
+      // AUTHENTICATION DISABLED - use temporary user
+      const userId = TEMP_USER_ID;
+      const success = await storage.removeFromCart(userId, req.params.itemId);
       if (!success) {
         return res.status(404).json({ message: "Cart item not found" });
       }
@@ -317,10 +321,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/cart", async (req, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      await storage.clearCart(req.user.id);
+      // AUTHENTICATION DISABLED - use temporary user
+      const userId = TEMP_USER_ID;
+      await storage.clearCart(userId);
       res.status(204).send();
     } catch (error) {
       console.error("Error clearing cart:", error);
@@ -330,12 +333,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Favorites endpoints
   app.get("/api/favorites", async (req, res) => {
-    if (!req.user?.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    // AUTHENTICATION DISABLED - use temporary user
+    const userId = TEMP_USER_ID;
     
     try {
-      const favorites = await storage.getFavorites(req.user.id);
+      const favorites = await storage.getFavorites(userId);
       res.json(favorites);
     } catch (error) {
       console.error("Error fetching favorites:", error);
@@ -344,13 +346,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/favorites", async (req, res) => {
-    if (!req.user?.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    // AUTHENTICATION DISABLED - use temporary user
+    const userId = TEMP_USER_ID;
     
     try {
       const validatedData = insertFavoriteSchema.parse(req.body);
-      const favorite = await storage.addFavorite(req.user.id, validatedData.itemId);
+      const favorite = await storage.addFavorite(userId, validatedData.itemId);
       res.json(favorite);
     } catch (error: any) {
       if (error.name === 'ZodError') {
@@ -362,12 +363,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/favorites/:itemId", async (req, res) => {
-    if (!req.user?.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    // AUTHENTICATION DISABLED - use temporary user
+    const userId = TEMP_USER_ID;
     
     try {
-      const success = await storage.removeFavorite(req.user.id, req.params.itemId);
+      const success = await storage.removeFavorite(userId, req.params.itemId);
       if (!success) {
         return res.status(404).json({ message: "Favorite not found" });
       }
