@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Package, Gavel, ShoppingCart, Megaphone, AlertTriangle, Plus, Trash2, History, RotateCcw, Pencil, Scale, Heart } from "lucide-react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+// import { useAuth } from "@/hooks/use-auth"; // Authentication temporarily disabled
 import { useQuery, useMutation } from "@tanstack/react-query";
 import type { Item, FavoriteWithDetails } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,9 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import EditItemDialog from "@/components/EditItemDialog";
 import ItemCard from "@/components/ItemCard";
+
+// Temporary user ID for unrestricted access (matches server/routes.ts)
+const TEMP_USER_ID = "temp-user-id";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +45,8 @@ import {
 export default function AccountPage() {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [editingItem, setEditingItem] = useState<Item | null>(null);
-  const { user } = useAuth();
+  // Authentication temporarily disabled - using temp user ID
+  // const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -68,20 +72,20 @@ export default function AccountPage() {
 
   // Fetch user's items for My Market
   const { data: userItems = [], isLoading: isLoadingItems } = useQuery<Item[]>({
-    queryKey: [`/api/items?sellerId=${user?.id}`],
-    enabled: !!user?.id && activeSection === "market",
+    queryKey: [`/api/items?sellerId=${TEMP_USER_ID}`],
+    enabled: activeSection === "market",
   });
 
   // Fetch all user's items for history (including deleted)
   const { data: allUserItems = [], isLoading: isLoadingHistory } = useQuery<Item[]>({
-    queryKey: [`/api/items?sellerId=${user?.id}&includeDeleted=true`],
-    enabled: !!user?.id && activeSection === "history",
+    queryKey: [`/api/items?sellerId=${TEMP_USER_ID}&includeDeleted=true`],
+    enabled: activeSection === "history",
   });
 
   // Fetch user's favorites
   const { data: favorites = [], isLoading: isLoadingFavorites } = useQuery<FavoriteWithDetails[]>({
     queryKey: ['/api/favorites'],
-    enabled: !!user?.id && activeSection === "favorites",
+    enabled: activeSection === "favorites",
   });
 
   const deleteItemMutation = useMutation({
@@ -257,16 +261,16 @@ export default function AccountPage() {
                       <CardContent className="pt-6">
                         <div className="flex flex-col items-center text-center">
                           <Avatar className="h-32 w-32 mb-4">
-                            <AvatarImage src={user?.profileImageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id}`} />
+                            <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=anonymous`} />
                             <AvatarFallback>
-                              {user?.firstName?.[0]}{user?.lastName?.[0]}
+                              AU
                             </AvatarFallback>
                           </Avatar>
                           <h2 className="text-xl font-bold mb-1" data-testid="text-username">
-                            {user?.firstName} {user?.lastName}
+                            Anonymous User
                           </h2>
                           <p className="text-sm text-muted-foreground mb-4" data-testid="text-email">
-                            {user?.email}
+                            temp@unimart.local
                           </p>
                         </div>
                       </CardContent>
@@ -278,22 +282,22 @@ export default function AccountPage() {
                     <Card>
                       <CardHeader>
                         <CardTitle>Account Settings</CardTitle>
-                        <CardDescription>Manage your account information</CardDescription>
+                        <CardDescription>Manage your account information (Authentication temporarily disabled)</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="firstName">First Name</Label>
-                          <Input id="firstName" defaultValue={user?.firstName || ""} data-testid="input-firstName" />
+                          <Input id="firstName" defaultValue="Anonymous" data-testid="input-firstName" disabled />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="lastName">Last Name</Label>
-                          <Input id="lastName" defaultValue={user?.lastName || ""} data-testid="input-lastName" />
+                          <Input id="lastName" defaultValue="User" data-testid="input-lastName" disabled />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="email">Email</Label>
-                          <Input id="email" type="email" defaultValue={user?.email || ""} disabled data-testid="input-email" />
+                          <Input id="email" type="email" defaultValue="temp@unimart.local" disabled data-testid="input-email" />
                         </div>
-                        <Button data-testid="button-save-changes">Save Changes</Button>
+                        <Button data-testid="button-save-changes" disabled>Save Changes</Button>
                       </CardContent>
                     </Card>
                   </div>
