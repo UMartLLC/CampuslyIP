@@ -13,18 +13,22 @@ export default function PaymentModalExample() {
     description: "Excellent condition MacBook Air with M2 chip, 8GB RAM, 256GB SSD.",
     price: "899.99",
     category: "Electronics",
+    subcategory: "Laptops",
     condition: "like-new",
     images: ["https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400"],
     sellerId: "user1",
     status: "available",
     createdAt: new Date(),
+    deletedAt: null,
     seller: {
       id: "user1",
-      name: "Sarah Chen",
+      firstName: "Sarah",
+      lastName: "Chen",
       username: "sarahc",
       email: "sarah@email.com",
-      password: "",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b193?w=100"
+      profileImageUrl: "https://images.unsplash.com/photo-1494790108755-2616b612b193?w=100",
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
   };
 

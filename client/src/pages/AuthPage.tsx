@@ -154,7 +154,7 @@ export default function AuthPage() {
                       </div>
                       <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
                         <DialogTrigger asChild>
-                          <Button variant="link" className="px-0 text-sm" data-testid="button-forgot-password">
+                          <Button variant="ghost" className="px-0 text-sm" data-testid="button-forgot-password">
                             Forgot password?
                           </Button>
                         </DialogTrigger>

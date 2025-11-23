@@ -122,7 +122,7 @@ export default function PaymentModal({ isOpen, onClose, item, onPaymentComplete 
                     {item.title}
                   </h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Sold by {item.seller.name}
+                    Sold by {item.seller.firstName} {item.seller.lastName}
                   </p>
                   <div className="text-lg font-bold text-primary" data-testid="text-payment-item-price">
                     ${item.price}

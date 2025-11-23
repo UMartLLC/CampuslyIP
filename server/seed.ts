@@ -7,8 +7,19 @@ const TEMP_USER_ID = "temp-user-id";
 
 async function seed() {
   try {
+    // Check if database is enabled (not using in-memory storage)
+    if (!db) {
+      console.log("⚠ Database is disabled (using in-memory storage). Skipping seed.");
+      console.log("✓ Default user is automatically created in MemStorage");
+      process.exit(0);
+      return;
+    }
+
+    // TypeScript assertion: at this point db is definitely not null
+    const database = db;
+
     // Check if temporary default user already exists
-    const [existingUser] = await db
+    const [existingUser] = await database
       .select()
       .from(users)
       .where(eq(users.id, TEMP_USER_ID));
@@ -16,7 +27,7 @@ async function seed() {
     if (!existingUser) {
       // Create temporary default user for unrestricted access
       // NOTE: Authentication is temporarily disabled
-      await db.insert(users).values({
+      await database.insert(users).values({
         id: TEMP_USER_ID,
         username: "temp-user",
         password: "temp-password-not-used",
