@@ -1,11 +1,9 @@
 // Referenced from blueprint:javascript_auth_all_persistance
-import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, type CartItem, type CartItemWithDetails, type Favorite, type FavoriteWithDetails, users, items, cartItems, favorites } from "@shared/schema";
-import { db } from "./db";
-import { eq, isNull, and, notInArray } from "drizzle-orm";
+import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, type CartItem, type CartItemWithDetails, type Favorite, type FavoriteWithDetails } from "@shared/schema";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
+import MemoryStore from "memorystore";
 
-const PostgresSessionStore = connectPg(session);
+const SessionStore = MemoryStore(session);
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -35,262 +33,332 @@ export interface IStorage {
   sessionStore: session.Store;
 }
 
-export class DatabaseStorage implements IStorage {
+// In-Memory Storage Implementation
+export class MemStorage implements IStorage {
   sessionStore: session.Store;
+  private users: Map<string, User> = new Map();
+  private items: Map<string, Item> = new Map();
+  private cartItems: Map<string, CartItem> = new Map();
+  private favorites: Map<string, Favorite> = new Map();
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ 
-      conString: process.env.DATABASE_URL,
-      createTableIfMissing: false,
-      tableName: "sessions",
+    this.sessionStore = new SessionStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
     });
+    
+    // Create a default temp user
+    const tempUser: User = {
+      id: "temp-user-id",
+      username: "tempuser",
+      password: "hashed_password",
+      email: "temp@unimart.local",
+      firstName: "Anonymous",
+      lastName: "User",
+      profileImageUrl: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.set(tempUser.id, tempUser);
+    
+    // Add some sample items
+    const sampleItems: Item[] = [
+      {
+        id: "item-1",
+        title: "Calculus Textbook",
+        description: "Barely used calculus textbook for MATH 101",
+        price: "45.00",
+        category: "Textbooks",
+        subcategory: "Mathematics",
+        condition: "like-new",
+        images: [],
+        sellerId: "temp-user-id",
+        status: "available",
+        createdAt: new Date(),
+        deletedAt: null,
+      },
+      {
+        id: "item-2",
+        title: "Laptop Stand",
+        description: "Adjustable aluminum laptop stand",
+        price: "25.00",
+        category: "Electronics",
+        subcategory: "Accessories",
+        condition: "good",
+        images: [],
+        sellerId: "temp-user-id",
+        status: "available",
+        createdAt: new Date(),
+        deletedAt: null,
+      },
+      {
+        id: "item-3",
+        title: "Desk Lamp",
+        description: "LED desk lamp with adjustable brightness",
+        price: "15.00",
+        category: "Furniture",
+        subcategory: "Lighting",
+        condition: "good",
+        images: [],
+        sellerId: "temp-user-id",
+        status: "available",
+        createdAt: new Date(),
+        deletedAt: null,
+      },
+    ];
+    
+    sampleItems.forEach(item => this.items.set(item.id, item));
+  }
+
+  private generateId(): string {
+    return `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    return this.users.get(id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    return Array.from(this.users.values()).find(u => u.username === username);
   }
 
   async createUser(userData: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .returning();
+    const user: User = {
+      id: this.generateId(),
+      ...userData,
+      profileImageUrl: null,
+      email: userData.email || null,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.set(user.id, user);
     return user;
   }
 
   async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
-    await db
-      .update(users)
-      .set({ password: hashedPassword })
-      .where(eq(users.id, userId));
+    const user = this.users.get(userId);
+    if (user) {
+      user.password = hashedPassword;
+      user.updatedAt = new Date();
+    }
   }
 
   async getAllItems(): Promise<ItemWithSeller[]> {
-    const result = await db
-      .select()
-      .from(items)
-      .leftJoin(users, eq(items.sellerId, users.id))
-      .where(isNull(items.deletedAt));
-    
-    return result.map(row => {
-      if (!row.users) {
-        throw new Error(`Seller not found for item ${row.items.id}`);
+    const result: ItemWithSeller[] = [];
+    const allItems = Array.from(this.items.values());
+    for (const item of allItems) {
+      if (!item.deletedAt) {
+        const seller = this.users.get(item.sellerId);
+        if (seller) {
+          const publicSeller: PublicUser = seller;
+          result.push({
+            ...item,
+            seller: publicSeller,
+          });
+        }
       }
-      const publicSeller: PublicUser = row.users;
-      return {
-        ...row.items,
-        seller: publicSeller,
-      };
-    });
+    }
+    return result;
   }
 
   async getItem(id: string): Promise<ItemWithSeller | undefined> {
-    const [result] = await db
-      .select()
-      .from(items)
-      .leftJoin(users, eq(items.sellerId, users.id))
-      .where(eq(items.id, id));
+    const item = this.items.get(id);
+    if (!item) return undefined;
     
-    if (!result) return undefined;
+    const seller = this.users.get(item.sellerId);
+    if (!seller) return undefined;
     
-    if (!result.users) {
-      throw new Error(`Seller not found for item ${result.items.id}`);
-    }
-    
-    const publicSeller: PublicUser = result.users;
-    
+    const publicSeller: PublicUser = seller;
     return {
-      ...result.items,
+      ...item,
       seller: publicSeller,
     };
   }
 
   async getItemsBySeller(sellerId: string): Promise<Item[]> {
-    return await db.select().from(items).where(and(eq(items.sellerId, sellerId), isNull(items.deletedAt)));
+    return Array.from(this.items.values()).filter(
+      item => item.sellerId === sellerId && !item.deletedAt
+    );
   }
 
   async getAllItemsBySeller(sellerId: string): Promise<Item[]> {
-    return await db.select().from(items).where(eq(items.sellerId, sellerId));
+    return Array.from(this.items.values()).filter(
+      item => item.sellerId === sellerId
+    );
   }
 
   async createItem(insertItem: InsertItem, sellerId: string): Promise<Item> {
-    const [item] = await db
-      .insert(items)
-      .values({
-        ...insertItem,
-        sellerId,
-      })
-      .returning();
+    const item: Item = {
+      id: this.generateId(),
+      ...insertItem,
+      images: insertItem.images || null,
+      subcategory: insertItem.subcategory || null,
+      sellerId,
+      status: "available",
+      createdAt: new Date(),
+      deletedAt: null,
+    };
+    this.items.set(item.id, item);
     return item;
   }
 
   async updateItem(id: string, updates: Partial<InsertItem>): Promise<Item | undefined> {
-    const [item] = await db
-      .update(items)
-      .set(updates)
-      .where(eq(items.id, id))
-      .returning();
-    return item || undefined;
+    const item = this.items.get(id);
+    if (!item) return undefined;
+    
+    Object.assign(item, updates);
+    return item;
   }
 
   async deleteItem(id: string): Promise<boolean> {
-    const result = await db
-      .update(items)
-      .set({ deletedAt: new Date() })
-      .where(eq(items.id, id))
-      .returning();
-    return result.length > 0;
+    const item = this.items.get(id);
+    if (!item) return false;
+    
+    item.deletedAt = new Date();
+    return true;
   }
 
   async repostItem(id: string): Promise<Item | undefined> {
-    const [item] = await db
-      .update(items)
-      .set({ deletedAt: null, status: 'available' })
-      .where(eq(items.id, id))
-      .returning();
-    return item || undefined;
+    const item = this.items.get(id);
+    if (!item) return undefined;
+    
+    item.deletedAt = null;
+    item.status = 'available';
+    return item;
   }
 
   async getCartItems(userId: string): Promise<CartItemWithDetails[]> {
-    const result = await db
-      .select()
-      .from(cartItems)
-      .leftJoin(items, eq(cartItems.itemId, items.id))
-      .leftJoin(users, eq(items.sellerId, users.id))
-      .where(eq(cartItems.userId, userId));
+    const result: CartItemWithDetails[] = [];
+    const allCartItems = Array.from(this.cartItems.values());
     
-    return result.map(row => {
-      if (!row.items) {
-        throw new Error(`Item not found for cart item ${row.cart_items.id}`);
+    for (const cartItem of allCartItems) {
+      if (cartItem.userId === userId) {
+        const item = this.items.get(cartItem.itemId);
+        if (item) {
+          const seller = this.users.get(item.sellerId);
+          if (seller) {
+            const publicSeller: PublicUser = seller;
+            const itemWithSeller: ItemWithSeller = {
+              ...item,
+              seller: publicSeller,
+            };
+            result.push({
+              ...cartItem,
+              item: itemWithSeller,
+            });
+          }
+        }
       }
-      if (!row.users) {
-        throw new Error(`Seller not found for item ${row.items.id}`);
-      }
-      const publicSeller: PublicUser = row.users;
-      const itemWithSeller: ItemWithSeller = {
-        ...row.items,
-        seller: publicSeller,
-      };
-      return {
-        ...row.cart_items,
-        item: itemWithSeller,
-      };
-    });
+    }
+    
+    return result;
   }
 
   async addToCart(userId: string, itemId: string): Promise<CartItem> {
-    // Check if item is already in cart
-    const [existing] = await db
-      .select()
-      .from(cartItems)
-      .where(and(eq(cartItems.userId, userId), eq(cartItems.itemId, itemId)));
+    // Check if already in cart
+    const existing = Array.from(this.cartItems.values()).find(
+      ci => ci.userId === userId && ci.itemId === itemId
+    );
     
-    if (existing) {
-      return existing;
-    }
+    if (existing) return existing;
 
-    const [cartItem] = await db
-      .insert(cartItems)
-      .values({
-        userId,
-        itemId,
-      })
-      .returning();
+    const cartItem: CartItem = {
+      id: this.generateId(),
+      userId,
+      itemId,
+      createdAt: new Date(),
+    };
+    this.cartItems.set(cartItem.id, cartItem);
     return cartItem;
   }
 
   async removeFromCart(userId: string, itemId: string): Promise<boolean> {
-    const result = await db
-      .delete(cartItems)
-      .where(and(eq(cartItems.userId, userId), eq(cartItems.itemId, itemId)))
-      .returning();
-    return result.length > 0;
+    const entries = Array.from(this.cartItems.entries());
+    for (const [id, cartItem] of entries) {
+      if (cartItem.userId === userId && cartItem.itemId === itemId) {
+        this.cartItems.delete(id);
+        return true;
+      }
+    }
+    return false;
   }
 
   async clearCart(userId: string): Promise<void> {
-    await db
-      .delete(cartItems)
-      .where(eq(cartItems.userId, userId));
+    const entries = Array.from(this.cartItems.entries());
+    for (const [id, cartItem] of entries) {
+      if (cartItem.userId === userId) {
+        this.cartItems.delete(id);
+      }
+    }
   }
 
   async getFavorites(userId: string): Promise<FavoriteWithDetails[]> {
-    const result = await db
-      .select()
-      .from(favorites)
-      .leftJoin(items, eq(favorites.itemId, items.id))
-      .leftJoin(users, eq(items.sellerId, users.id))
-      .where(eq(favorites.userId, userId));
+    const result: FavoriteWithDetails[] = [];
+    const allFavorites = Array.from(this.favorites.values());
     
-    const validResults: FavoriteWithDetails[] = [];
-    
-    for (const row of result) {
-      // Skip if item doesn't exist, is deleted, or is sold
-      if (!row.items || row.items.deletedAt || row.items.status === 'sold') {
-        continue;
+    for (const favorite of allFavorites) {
+      if (favorite.userId === userId) {
+        const item = this.items.get(favorite.itemId);
+        
+        // Skip if item doesn't exist, is deleted, or is sold
+        if (!item || item.deletedAt || item.status === 'sold') {
+          continue;
+        }
+        
+        const seller = this.users.get(item.sellerId);
+        if (seller) {
+          const publicSeller: PublicUser = seller;
+          const itemWithSeller: ItemWithSeller = {
+            ...item,
+            seller: publicSeller,
+          };
+          result.push({
+            ...favorite,
+            item: itemWithSeller,
+          });
+        }
       }
-      
-      // Skip if seller doesn't exist (shouldn't happen with proper foreign keys)
-      if (!row.users) {
-        continue;
-      }
-      
-      const publicSeller: PublicUser = row.users;
-      const itemWithSeller: ItemWithSeller = {
-        ...row.items,
-        seller: publicSeller,
-      };
-      
-      validResults.push({
-        ...row.favorites,
-        item: itemWithSeller,
-      });
     }
     
-    return validResults;
+    return result;
   }
 
   async addFavorite(userId: string, itemId: string): Promise<Favorite> {
-    // Check if item is already favorited
-    const [existing] = await db
-      .select()
-      .from(favorites)
-      .where(and(eq(favorites.userId, userId), eq(favorites.itemId, itemId)));
+    // Check if already favorited
+    const existing = Array.from(this.favorites.values()).find(
+      f => f.userId === userId && f.itemId === itemId
+    );
     
-    if (existing) {
-      return existing;
-    }
+    if (existing) return existing;
 
-    const [favorite] = await db
-      .insert(favorites)
-      .values({
-        userId,
-        itemId,
-      })
-      .returning();
+    const favorite: Favorite = {
+      id: this.generateId(),
+      userId,
+      itemId,
+      createdAt: new Date(),
+    };
+    this.favorites.set(favorite.id, favorite);
     return favorite;
   }
 
   async removeFavorite(userId: string, itemId: string): Promise<boolean> {
-    const result = await db
-      .delete(favorites)
-      .where(and(eq(favorites.userId, userId), eq(favorites.itemId, itemId)))
-      .returning();
-    return result.length > 0;
+    const entries = Array.from(this.favorites.entries());
+    for (const [id, favorite] of entries) {
+      if (favorite.userId === userId && favorite.itemId === itemId) {
+        this.favorites.delete(id);
+        return true;
+      }
+    }
+    return false;
   }
 
   async isFavorite(userId: string, itemId: string): Promise<boolean> {
-    const [favorite] = await db
-      .select()
-      .from(favorites)
-      .where(and(eq(favorites.userId, userId), eq(favorites.itemId, itemId)));
-    return !!favorite;
+    const allFavorites = Array.from(this.favorites.values());
+    return allFavorites.some(
+      f => f.userId === userId && f.itemId === itemId
+    );
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();

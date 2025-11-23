@@ -1,3 +1,8 @@
+// Database connection file - CURRENTLY DISABLED FOR IN-MEMORY STORAGE
+// This file is only needed when using PostgreSQL database
+// To use a real database, uncomment the code below and set DATABASE_URL
+
+/*
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
@@ -13,3 +18,8 @@ if (!process.env.DATABASE_URL) {
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
+*/
+
+// Placeholder exports for when database is disabled
+export const pool = null;
+export const db = null;
