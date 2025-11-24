@@ -1,12 +1,161 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { ShoppingCart, Trash2, Package } from "lucide-react";
+import React from 'react';
+import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
+import { ShoppingCart, Trash2, Package } from 'lucide-react';
 import { Link } from "wouter";
-import type { CartItemWithDetails } from "@shared/schema";
+
+// 1. Define the QueryClient directly in the file
+const queryClient = new QueryClient();
+
+// 2. Mock the type interface for the Cart Item
+interface ItemDetails {
+  id: string;
+  title: string;
+  price: string;
+  description: string;
+  category: string;
+  condition: string;
+  images: string[];
+}
+
+interface CartItemWithDetails {
+  id: string;
+  itemId: string;
+  quantity: number;
+  item: ItemDetails;
+}
+
+// --- TypeScript Interfaces for Props ---
+
+// Base interface for components that accept children and className
+interface BaseProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface ButtonProps extends BaseProps {
+  variant?: 'default' | 'outline' | 'destructive' | 'secondary';
+  size?: 'default' | 'lg' | 'sm';
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
+  'data-testid'?: string;
+}
+
+interface CardProps extends BaseProps {}
+
+interface CardHeaderProps extends BaseProps {}
+
+interface CardTitleProps extends BaseProps {}
+
+interface CardContentProps extends BaseProps {}
+
+interface BadgeProps extends BaseProps {
+  variant?: 'default' | 'secondary' | 'outline';
+}
+
+// Interface for the Toast properties (FIXES YOUR CURRENT ERROR)
+interface ToastProps {
+  title: string;
+  description: string;
+  variant?: 'default' | 'destructive' | 'secondary' | 'outline';
+}
+
+// --- Component Replacements (Now typed correctly) ---
+
+const useToast = () => {
+  return {
+    // Explicitly type the destructured parameter object with ToastProps
+    toast: ({ title, description, variant }: ToastProps) => { 
+      console.log(`Toast: ${title} - ${description} (Variant: ${variant})`);
+      alert(`${title}: ${description}`);
+    },
+  };
+};
+
+const Card: React.FC<CardProps> = ({ children, className = '' }) => (
+  <div className={`rounded-lg border bg-white text-gray-900 shadow-sm ${className}`}>
+    {children}
+  </div>
+);
+
+const CardHeader: React.FC<CardHeaderProps> = ({ children, className = '' }) => (
+  <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>
+    {children}
+  </div>
+);
+
+const CardTitle: React.FC<CardTitleProps> = ({ children, className = '' }) => (
+  <h3 className={`text-xl font-semibold leading-none tracking-tight ${className}`}>
+    {children}
+  </h3>
+);
+
+const CardContent: React.FC<CardContentProps> = ({ children, className = '' }) => (
+  <div className={`p-6 pt-0 ${className}`}>
+    {children}
+  </div>
+);
+
+const Button: React.FC<ButtonProps> = ({ 
+  children, 
+  className = '', 
+  variant = 'default', 
+  size = 'default', 
+  onClick, 
+  disabled, 
+  'data-testid': dataTestId, 
+  ...props 
+}) => {
+  let baseClasses = 'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50';
+  let variantClasses = '';
+  let sizeClasses = '';
+
+  // Simulate common button styles
+  if (variant === 'default') {
+    variantClasses = 'bg-blue-600 text-white shadow hover:bg-blue-700';
+  } else if (variant === 'outline') {
+    variantClasses = 'border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-100';
+  }
+
+  if (size === 'default') {
+    sizeClasses = 'h-9 px-4 py-2';
+  } else if (size === 'lg') {
+    sizeClasses = 'h-10 px-6';
+  } else if (size === 'sm') {
+    sizeClasses = 'h-8 rounded-md px-3 text-xs';
+  }
+
+  return (
+    <button
+      className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
+      onClick={onClick}
+      disabled={disabled}
+      data-testid={dataTestId}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+const Badge: React.FC<BadgeProps> = ({ children, className = '', variant = 'default' }) => {
+  let baseClasses = 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors';
+  let variantClasses = '';
+
+  // Simulate common badge styles
+  if (variant === 'secondary') {
+    variantClasses = 'bg-gray-100 text-gray-800 border-transparent';
+  } else if (variant === 'outline') {
+    variantClasses = 'bg-white text-gray-600 border-gray-300';
+  }
+
+  return (
+    <div className={`${baseClasses} ${variantClasses} ${className}`}>
+      {children}
+    </div>
+  );
+};
+
+// --- CartPage Component ---
 
 export default function CartPage() {
   const { toast } = useToast();
@@ -75,7 +224,7 @@ export default function CartPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <p className="text-muted-foreground">Loading your cart...</p>
+          <p className="text-gray-500">Loading your cart...</p>
         </div>
       </div>
     );
@@ -83,9 +232,10 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Header with Title and Clear Cart Button */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <ShoppingCart className="h-8 w-8 text-primary" />
+          <ShoppingCart className="h-8 w-8 text-blue-600" />
           <h1 className="text-3xl font-bold">Shopping Cart</h1>
         </div>
         {cartItems.length > 0 && (
@@ -95,17 +245,19 @@ export default function CartPage() {
             disabled={clearCartMutation.isPending}
             data-testid="button-clear-cart"
           >
+            <Trash2 className="h-4 w-4 mr-2" />
             Clear Cart
           </Button>
         )}
       </div>
 
       {cartItems.length === 0 ? (
+        /* Empty Cart State */
         <Card>
           <CardContent className="py-12 text-center">
-            <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <Package className="h-16 w-16 mx-auto mb-4 text-gray-400" />
             <p className="text-lg font-medium mb-2">Your cart is empty</p>
-            <p className="text-muted-foreground mb-4">Browse items and add them to your cart</p>
+            <p className="text-gray-500 mb-4">Browse items and add them to your cart</p>
             <Link href="/items">
               <Button data-testid="button-browse-items">
                 Browse Items
@@ -114,15 +266,17 @@ export default function CartPage() {
           </CardContent>
         </Card>
       ) : (
+        /* Cart Content Grid */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Cart Items */}
+          {/* Cart Items List */}
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map((cartItem) => (
               <Card key={cartItem.id} data-testid={`card-cart-item-${cartItem.item.id}`}>
                 <CardContent className="p-4">
                   <div className="flex gap-4">
+                    {/* Item Image */}
                     {cartItem.item.images && cartItem.item.images.length > 0 && (
-                      <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-md">
+                      <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
                         <img
                           src={cartItem.item.images[0]}
                           alt={cartItem.item.title}
@@ -131,6 +285,7 @@ export default function CartPage() {
                         />
                       </div>
                     )}
+                    {/* Item Details */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-lg mb-1" data-testid={`text-cart-item-title-${cartItem.item.id}`}>
                         {cartItem.item.title}
@@ -143,16 +298,17 @@ export default function CartPage() {
                           {cartItem.item.condition}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-sm text-gray-500 line-clamp-2">
                         {cartItem.item.description}
                       </p>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="text-sm text-gray-500 mt-1">
                         Seller: Anonymous Seller
                       </p>
                     </div>
+                    {/* Price and Remove Button */}
                     <div className="flex flex-col items-end justify-between">
-                      <span className="font-bold text-xl text-primary" data-testid={`text-cart-item-price-${cartItem.item.id}`}>
-                        ${cartItem.item.price}
+                      <span className="font-bold text-xl text-blue-600" data-testid={`text-cart-item-price-${cartItem.item.id}`}>
+                        ${parseFloat(cartItem.item.price).toFixed(2)}
                       </span>
                       <Button
                         variant="outline"
@@ -180,17 +336,17 @@ export default function CartPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Items ({cartItems.length})</span>
+                    <span className="text-gray-500">Items ({cartItems.length})</span>
                     <span data-testid="text-subtotal">${totalAmount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Shipping</span>
+                    <span className="text-gray-500">Shipping</span>
                     <span className="text-green-600">Free</span>
                   </div>
-                  <div className="border-t pt-2 mt-2">
+                  <div className="border-t border-gray-200 pt-2 mt-2">
                     <div className="flex justify-between font-semibold text-lg">
                       <span>Total</span>
-                      <span className="text-primary" data-testid="text-total">${totalAmount.toFixed(2)}</span>
+                      <span className="text-blue-600" data-testid="text-total">${totalAmount.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
