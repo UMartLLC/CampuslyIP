@@ -1,48 +1,42 @@
-// Database seeding file - CURRENTLY DISABLED FOR IN-MEMORY STORAGE
-// This file is only needed when using PostgreSQL database
-// To use with a real database, ensure DATABASE_URL is set
+// Database seeding file
+// When database is enabled (db.ts configured): seeds the database with default user
+// When database is disabled (using MemStorage): exits gracefully
 
 async function seed() {
   try {
-    // Check if database is enabled (DATABASE_URL environment variable is set)
-    if (!process.env.DATABASE_URL) {
+    // Dynamically import database module to check if it's configured
+    const { db } = await import("./db");
+
+    // Check if database connection is available
+    // db will be null if database code in db.ts is commented out (using in-memory storage)
+    if (!db) {
       console.log("⚠ Database is disabled (using in-memory storage). Skipping seed.");
       console.log("✓ Default user is automatically created in MemStorage");
+      console.log("ℹ To enable database seeding, uncomment the database configuration in server/db.ts");
       process.exit(0);
       return;
     }
 
-    // Dynamically import database modules only when DATABASE_URL is available
-    const dbModule = await import("./db");
-    const schemaModule = await import("@shared/schema");
-    const drizzleModule = await import("drizzle-orm");
+    // Database is enabled - proceed with seeding
+    const { users } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
 
     // Temporary user ID for unrestricted access (matches server/routes.ts)
     const TEMP_USER_ID = "temp-user-id";
 
-    // At this point, we know DATABASE_URL is set, so db should be initialized
-    // The db type is inferred from the import, but TypeScript sees it as potentially null
-    // We use a runtime check and type narrowing
-    const db = dbModule.db;
-    const users = schemaModule.users;
-    const eq = drizzleModule.eq;
+    // Type assertion: db is checked for null above. When DATABASE_URL is set and db.ts
+    // is properly configured (uncommented), db will be a valid Drizzle database instance.
+    const database = db as any;
 
-    if (!db) {
-      console.error("✗ Database connection failed");
-      process.exit(1);
-      return;
-    }
-
-    // TypeScript can't narrow the type after dynamic import, but runtime check ensures db is not null
     // Check if temporary default user already exists
-    // @ts-ignore
-    const [existingUser] = await db.select().from(users).where(eq(users.id, TEMP_USER_ID));
+    const [existingUser] = await database
+      .select()
+      .from(users)
+      .where(eq(users.id, TEMP_USER_ID));
 
     if (!existingUser) {
       // Create temporary default user for unrestricted access
-      // NOTE: Authentication is temporarily disabled
-      // @ts-ignore - TypeScript can't narrow the type after dynamic import, but runtime check ensures db is not null
-      await db.insert(users).values({
+      await database.insert(users).values({
         id: TEMP_USER_ID,
         username: "temp-user",
         password: "temp-password-not-used",
