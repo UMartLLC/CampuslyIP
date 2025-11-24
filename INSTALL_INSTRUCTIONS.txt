@@ -1,0 +1,26 @@
+HOW TO RUN THIS PROJECT ON YOUR LOCAL MACHINE (VS CODE)
+
+1. Download or clone this project to your computer
+
+2. Open the project folder in VS Code
+
+3. Rename the config file:
+   - Delete the file: vite.config.ts
+   - Rename: vite.config.local.ts → vite.config.ts
+
+4. Install Node.js from https://nodejs.org (version 20 or higher)
+
+5. Open terminal in VS Code and run:
+   npm install
+
+6. Start the app:
+   npm run dev
+
+7. Open your browser to: http://localhost:5000
+
+That's it! All packages work with VS Code - no Replit-specific dependencies.
+
+TROUBLESHOOTING:
+- If port 5000 is in use, the terminal will show an error
+- Press Ctrl+C to stop the server
+- TypeScript errors? Restart VS Code
