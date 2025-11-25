@@ -4,7 +4,7 @@ import { ShoppingCart, Trash2, Package } from 'lucide-react';
 import { Link } from "wouter";
 
 // 1. Define the QueryClient directly in the file
-const queryClient = new QueryClient();
+const queryClient = new QueryClient(); 
 
 // 2. Mock the type interface for the Cart Item
 interface ItemDetails {
