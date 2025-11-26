@@ -32,7 +32,7 @@ export default function FAQPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-4xl font-bold font-heading mb-4">Frequently Asked Questions</h1>
       <p className="text-lg text-muted-foreground mb-8">
-        Find answers to common questions about using our marketplace
+        Find answers to common questions about using Campusly's marketpace
       </p>
 
       <div className="space-y-4">
@@ -52,7 +52,7 @@ export default function FAQPage() {
         <CardContent className="pt-6">
           <h3 className="text-lg font-semibold mb-2">Still have questions?</h3>
           <p className="text-muted-foreground">
-            Contact our support team at support@campusmarket.com or visit our Help Center for more information.
+            Contact our support team at support@campusly.com.
           </p>
         </CardContent>
       </Card>

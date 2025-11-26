@@ -8,7 +8,7 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
           <p className="text-muted-foreground mb-4">
-            By accessing and using CampusMarket, you accept and agree to be bound by these terms and conditions. 
+            By accessing and using Campusly, you accept and agree to be bound by these terms and conditions. 
             If you do not agree to these terms, please do not use our services.
           </p>
         </section>

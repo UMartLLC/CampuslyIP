@@ -28,7 +28,7 @@ export default function Welcome() {
               Shop by Category
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Find exactly what you need from fellow students on your campus
+              Find exactly what you need from fellow students, faculty, and staff on your campus
             </p>
           </div>
 
@@ -69,10 +69,10 @@ export default function Welcome() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold font-heading mb-4">
-              How CampusMarket Works
+              How the Campusly Marketplace Works
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Simple, safe, and secure trading between students
+              It's Simple, Safe, and Secure
             </p>
           </div>
 
@@ -118,7 +118,7 @@ export default function Welcome() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
               <h3 className="text-2xl md:text-3xl font-bold mb-4">
-                Join Thousands of Students Already Trading
+                Join the Hundreds Already Trading
               </h3>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/items">
