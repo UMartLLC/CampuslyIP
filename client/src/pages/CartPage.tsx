@@ -1,17 +1,14 @@
 import React from 'react';
-// Imports necessary hooks from TanStack Query for data fetching and manipulation.
 import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
-// Imports icons for shopping cart, trash, and package (used in UI elements).
 import { ShoppingCart, Trash2, Package } from 'lucide-react';
-// Imports Link component from wouter for client-side navigation.
 import { Link } from "wouter";
 
-// 1. Define the QueryClient directly in the file (needed for invalidating queries).
+// 1. Define the QueryClient directly in the file
 const queryClient = new QueryClient(); 
 
-// 2. Mock the type interface for the Cart Item (necessary to satisfy TypeScript without external file).
+// 2. Mock the type interface for the Cart Item
 interface ItemDetails {
-  id: string; // Product ID
+  id: string;
   title: string;
   price: string;
   description: string;
@@ -21,21 +18,20 @@ interface ItemDetails {
 }
 
 interface CartItemWithDetails {
-  id: string; // Cart Item ID
+  id: string;
   itemId: string;
   quantity: number;
-  item: ItemDetails; // Detailed product information.
+  item: ItemDetails;
 }
 
 // --- TypeScript Interfaces for Props ---
 
-// Base interface for components that accept standard children and optional classes.
+// Base interface for components that accept children and className
 interface BaseProps {
   children: React.ReactNode;
   className?: string;
 }
 
-// Props specific to the custom Button component.
 interface ButtonProps extends BaseProps {
   variant?: 'default' | 'outline' | 'destructive' | 'secondary';
   size?: 'default' | 'lg' | 'sm';
@@ -44,27 +40,27 @@ interface ButtonProps extends BaseProps {
   'data-testid'?: string;
 }
 
-// Empty interfaces defining props for Card structure components.
 interface CardProps extends BaseProps {}
+
 interface CardHeaderProps extends BaseProps {}
+
 interface CardTitleProps extends BaseProps {}
+
 interface CardContentProps extends BaseProps {}
 
-// Props specific to the custom Badge component.
 interface BadgeProps extends BaseProps {
   variant?: 'default' | 'secondary' | 'outline';
 }
 
-// Interface for the Toast properties.
+// Interface for the Toast properties (FIXES YOUR CURRENT ERROR)
 interface ToastProps {
   title: string;
   description: string;
   variant?: 'default' | 'destructive' | 'secondary' | 'outline';
 }
 
-// --- Component Replacements (Styled with standard Tailwind classes) ---
+// --- Component Replacements (Now typed correctly) ---
 
-// Mock hook to replace useToast, using a browser alert for notifications.
 const useToast = () => {
   return {
     // Explicitly type the destructured parameter object with ToastProps
@@ -75,35 +71,30 @@ const useToast = () => {
   };
 };
 
-// Custom Card component (styled div).
 const Card: React.FC<CardProps> = ({ children, className = '' }) => (
   <div className={`rounded-lg border bg-white text-gray-900 shadow-sm ${className}`}>
     {children}
   </div>
 );
 
-// Custom Card Header component.
 const CardHeader: React.FC<CardHeaderProps> = ({ children, className = '' }) => (
   <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>
     {children}
   </div>
 );
 
-// Custom Card Title component (styled h3).
 const CardTitle: React.FC<CardTitleProps> = ({ children, className = '' }) => (
   <h3 className={`text-xl font-semibold leading-none tracking-tight ${className}`}>
     {children}
   </h3>
 );
 
-// Custom Card Content component (styled div, typically used without top padding after a CardHeader).
 const CardContent: React.FC<CardContentProps> = ({ children, className = '' }) => (
   <div className={`p-6 pt-0 ${className}`}>
     {children}
   </div>
 );
 
-// Custom Button component with simulated variants and sizes.
 const Button: React.FC<ButtonProps> = ({ 
   children, 
   className = '', 
@@ -125,7 +116,6 @@ const Button: React.FC<ButtonProps> = ({
     variantClasses = 'border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-100';
   }
 
-  // Simulate common button sizing
   if (size === 'default') {
     sizeClasses = 'h-9 px-4 py-2';
   } else if (size === 'lg') {
@@ -147,7 +137,6 @@ const Button: React.FC<ButtonProps> = ({
   );
 };
 
-// Custom Badge component with simulated variants.
 const Badge: React.FC<BadgeProps> = ({ children, className = '', variant = 'default' }) => {
   let baseClasses = 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors';
   let variantClasses = '';
@@ -166,19 +155,15 @@ const Badge: React.FC<BadgeProps> = ({ children, className = '', variant = 'defa
   );
 };
 
-// -----------------------------------------------------------------------------
-// 4. CartPage Component
-// -----------------------------------------------------------------------------
+// --- CartPage Component ---
 
 export default function CartPage() {
   const { toast } = useToast();
 
-  // Fetch cart items data from the API.
   const { data: cartItems = [], isLoading } = useQuery<CartItemWithDetails[]>({
     queryKey: ['/api/cart'],
   });
 
-  // Mutation to remove a single item from the cart.
   const removeFromCartMutation = useMutation({
     mutationFn: async (itemId: string) => {
       const response = await fetch(`/api/cart/${itemId}`, {
@@ -190,7 +175,6 @@ export default function CartPage() {
       }
     },
     onSuccess: () => {
-      // Invalidates cache to trigger a UI refresh and cart count update.
       queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
       toast({
         title: "Removed from cart",
@@ -206,7 +190,6 @@ export default function CartPage() {
     },
   });
 
-  // Mutation to clear all items from the cart.
   const clearCartMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch('/api/cart', {
@@ -218,7 +201,6 @@ export default function CartPage() {
       }
     },
     onSuccess: () => {
-      // Invalidates cache to trigger a UI refresh.
       queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
       toast({
         title: "Cart cleared",
@@ -234,12 +216,10 @@ export default function CartPage() {
     },
   });
 
-  // Calculates the total monetary amount of all items in the cart.
   const totalAmount = cartItems.reduce((sum, cartItem) => {
     return sum + parseFloat(cartItem.item.price);
   }, 0);
 
-  // Loading state display.
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -258,7 +238,6 @@ export default function CartPage() {
           <ShoppingCart className="h-8 w-8 text-blue-600" />
           <h1 className="text-3xl font-bold">Shopping Cart</h1>
         </div>
-        {/* Clear Cart Button (visible only if cart is not empty) */}
         {cartItems.length > 0 && (
           <Button
             variant="outline"
@@ -273,7 +252,7 @@ export default function CartPage() {
       </div>
 
       {cartItems.length === 0 ? (
-        /* Empty Cart State View */
+        /* Empty Cart State */
         <Card>
           <CardContent className="py-12 text-center">
             <Package className="h-16 w-16 mx-auto mb-4 text-gray-400" />
@@ -287,7 +266,7 @@ export default function CartPage() {
           </CardContent>
         </Card>
       ) : (
-        /* Cart Content Grid (Items List and Summary) */
+        /* Cart Content Grid */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Cart Items List */}
           <div className="lg:col-span-2 space-y-4">
@@ -329,13 +308,11 @@ export default function CartPage() {
                     {/* Price and Remove Button */}
                     <div className="flex flex-col items-end justify-between">
                       <span className="font-bold text-xl text-blue-600" data-testid={`text-cart-item-price-${cartItem.item.id}`}>
-                        {/* Displays price formatted to two decimal places */}
                         ${parseFloat(cartItem.item.price).toFixed(2)}
                       </span>
                       <Button
                         variant="outline"
                         size="sm"
-                        // Triggers mutation to remove this specific cart item.
                         onClick={() => removeFromCartMutation.mutate(cartItem.item.id)}
                         disabled={removeFromCartMutation.isPending}
                         data-testid={`button-remove-cart-item-${cartItem.item.id}`}
@@ -352,7 +329,7 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-20"> {/* Sticky positioning for summary box */}
+            <Card className="sticky top-20">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
@@ -373,11 +350,9 @@ export default function CartPage() {
                     </div>
                   </div>
                 </div>
-                {/* Checkout Button */}
                 <Button className="w-full" size="lg" data-testid="button-checkout">
                   Proceed to Checkout
                 </Button>
-                {/* Continue Shopping Link */}
                 <Link href="/items">
                   <Button variant="outline" className="w-full" data-testid="button-continue-shopping">
                     Continue Shopping

@@ -1,62 +1,40 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-// Imports icons for upload, close/remove, and reordering.
 import { Upload, X, ChevronUp, ChevronDown } from "lucide-react";
-// Imports TanStack Query hooks for mutation and cache invalidation.
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-// Imports React Hook Form core utilities.
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-// Imports Zod resolver for integrating Zod schema with React Hook Form.
 import { zodResolver } from "@hookform/resolvers/zod";
-// Imports Zod for schema definition.
 import { z } from "zod";
-// Imports category utilities and configuration from shared modules.
 import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/categories";
-// Library for converting HEIC image files (common on iPhones) to a web-compatible format.
 import heic2any from "heic2any";
 
-// Static arrays for form options.
 const CATEGORIES = getAllCategories();
 const CONDITIONS = ["new", "like-new", "good", "fair"];
 
-// -----------------------------------------------------------------------------
-// 1. Zod Validation Schema
-// -----------------------------------------------------------------------------
-
-// Defines the shape and validation rules for the form data.
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  // Price is kept as string to handle initial empty state and strict decimal input,
-  // but validation ensures it represents a positive number.
   price: z.string().min(0.01, "Price must be greater than 0"),
   category: z.string().min(1, "Category is required"),
   subcategory: z.string().min(1, "Subcategory is required"),
   condition: z.string().min(1, "Condition is required"),
 });
 
-// -----------------------------------------------------------------------------
-// 2. SellPage Component
-// -----------------------------------------------------------------------------
-
 export default function SellPage() {
-  // State stores the actual File objects to be submitted via FormData.
   const [images, setImages] = useState<File[]>([]);
-  // State stores the Data URLs for immediate preview display in the browser.
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const { toast } = useToast();
-  const [, setLocation] = useLocation(); // Function to navigate after successful submission.
-  const queryClient = useQueryClient(); // Used to invalidate cache after success.
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
-  // Initializes React Hook Form with the Zod schema.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -69,30 +47,25 @@ export default function SellPage() {
     },
   });
 
-  // Watch category field changes to dynamically filter available subcategories.
+  // Watch category to update subcategories
   const selectedCategory = form.watch("category");
   const availableSubcategories = selectedCategory ? getSubcategories(selectedCategory) : [];
-
-  // -----------------------------------------------------------------------------
-  // 3. Create Item Mutation
-  // -----------------------------------------------------------------------------
 
   const createItemMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const response = await fetch('/api/items', {
         method: 'POST',
-        body: data, // FormData object is passed directly, including files and form data.
+        body: data,
         credentials: 'include',
       });
       if (!response.ok) {
-        // Reads the detailed error message from the response body if available.
         const errorText = await response.text();
         throw new Error(errorText || 'Failed to create item');
       }
       return await response.json();
     },
     onSuccess: () => {
-      // Invalidate all queries starting with '/api/items' (marketplace, My Market) to refresh item lists.
+      // Invalidate all items queries (marketplace and My Market)
       queryClient.invalidateQueries({ 
         predicate: (query) => 
           Array.isArray(query.queryKey) && 
@@ -103,7 +76,7 @@ export default function SellPage() {
         title: "Success!",
         description: "Your item has been listed for sale.",
       });
-      setLocation('/items'); // Redirects user to the marketplace page.
+      setLocation('/items');
     },
     onError: (error) => {
       toast({
@@ -114,13 +87,8 @@ export default function SellPage() {
     },
   });
 
-  // -----------------------------------------------------------------------------
-  // 4. Image Upload and Conversion Handler
-  // -----------------------------------------------------------------------------
-
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      // Limits file selection to a maximum of 5 images.
       const selectedFiles = Array.from(e.target.files).slice(0, 5 - images.length);
       const newImages: File[] = [];
       const newPreviews: string[] = [];
@@ -130,13 +98,13 @@ export default function SellPage() {
           let processedFile = file;
           let preview: string;
           
-          // Check for HEIC/HEIF files (common iPhone format).
+          // Check if file is HEIC based on file extension (browsers don't always set correct MIME type)
           const isHEIC = file.name.toLowerCase().endsWith('.heic') || 
                          file.name.toLowerCase().endsWith('.heif') ||
                          file.type === 'image/heic' || 
                          file.type === 'image/heif';
           
-          // Convert HEIC to JPEG if detected.
+          // Convert HEIC to JPEG for preview and upload
           if (isHEIC) {
             console.log('Detected HEIC file:', file.name, 'type:', file.type);
             toast({
@@ -151,7 +119,7 @@ export default function SellPage() {
                 quality: 0.9,
               });
               
-              // Handles potential array output from heic2any and creates a new File object.
+              // heic2any can return an array of blobs for multi-image HEIC files
               const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
               
               processedFile = new File(
@@ -171,7 +139,7 @@ export default function SellPage() {
             }
           }
           
-          // Creates a Data URL for image preview display.
+          // Create preview from processed file
           preview = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -187,7 +155,7 @@ export default function SellPage() {
           
           console.log('Preview created for:', file.name);
           
-          // Collect processed images and previews into temporary arrays.
+          // Collect processed images
           newImages.push(processedFile);
           newPreviews.push(preview);
           
@@ -201,7 +169,7 @@ export default function SellPage() {
         }
       }
       
-      // Updates state once with all successfully processed new images.
+      // Update state once with all new images
       if (newImages.length > 0) {
         setImages(prev => [...prev, ...newImages]);
         setImagePreviews(prev => [...prev, ...newPreviews]);
@@ -209,28 +177,20 @@ export default function SellPage() {
     }
   };
 
-  // -----------------------------------------------------------------------------
-  // 5. Image Management Handlers
-  // -----------------------------------------------------------------------------
-
-  // Removes an image and its preview at the given index.
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Swaps image positions to move the image up (left in the display).
   const moveImageUp = (index: number) => {
     if (index === 0) return;
     
-    // Updates the File objects array.
     setImages(prev => {
       const newImages = [...prev];
       [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
       return newImages;
     });
     
-    // Updates the Preview URLs array, maintaining order parity with files.
     setImagePreviews(prev => {
       const newPreviews = [...prev];
       [newPreviews[index - 1], newPreviews[index]] = [newPreviews[index], newPreviews[index - 1]];
@@ -238,18 +198,15 @@ export default function SellPage() {
     });
   };
 
-  // Swaps image positions to move the image down (right in the display).
   const moveImageDown = (index: number) => {
     if (index === images.length - 1) return;
     
-    // Updates the File objects array.
     setImages(prev => {
       const newImages = [...prev];
       [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
       return newImages;
     });
     
-    // Updates the Preview URLs array.
     setImagePreviews(prev => {
       const newPreviews = [...prev];
       [newPreviews[index], newPreviews[index + 1]] = [newPreviews[index + 1], newPreviews[index]];
@@ -257,14 +214,8 @@ export default function SellPage() {
     });
   };
 
-  // -----------------------------------------------------------------------------
-  // 6. Form Submission Handler
-  // -----------------------------------------------------------------------------
-
-  // Wrapper around form.handleSubmit that converts form data to FormData for file upload.
   const handleSubmit = form.handleSubmit((data) => {
     const formData = new FormData();
-    // Appends text/select fields to the FormData object.
     formData.append('title', data.title);
     formData.append('description', data.description);
     formData.append('price', data.price);
@@ -275,17 +226,12 @@ export default function SellPage() {
     formData.append('condition', data.condition);
     // sellerId is now automatically set from authenticated user session
     
-    // Appends all image File objects to the FormData object under the key 'images'.
     images.forEach((image) => {
       formData.append('images', image);
     });
 
-    createItemMutation.mutate(formData); // Triggers the API call.
+    createItemMutation.mutate(formData);
   });
-
-  // -----------------------------------------------------------------------------
-  // 7. Component Render
-  // -----------------------------------------------------------------------------
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -297,11 +243,10 @@ export default function SellPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Image Upload Section */}
+              {/* Image Upload */}
               <div className="space-y-4">
                 <Label>Photos (up to 5)</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {/* Display Image Previews */}
                   {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative aspect-square rounded-lg overflow-hidden border group">
                       <img 
@@ -318,7 +263,7 @@ export default function SellPage() {
                           size="icon"
                           className="h-7 w-7"
                           onClick={() => moveImageUp(index)}
-                          disabled={index === 0} // Disable if first image
+                          disabled={index === 0}
                           data-testid={`button-move-up-${index}`}
                         >
                           <ChevronUp className="h-4 w-4" />
@@ -329,7 +274,7 @@ export default function SellPage() {
                           size="icon"
                           className="h-7 w-7"
                           onClick={() => moveImageDown(index)}
-                          disabled={index === images.length - 1} // Disable if last image
+                          disabled={index === images.length - 1}
                           data-testid={`button-move-down-${index}`}
                         >
                           <ChevronDown className="h-4 w-4" />
@@ -348,7 +293,7 @@ export default function SellPage() {
                         <X className="h-3 w-3" />
                       </Button>
                       
-                      {/* Priority Badge (First image is primary) */}
+                      {/* Priority Badge */}
                       {index === 0 && (
                         <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
                           Primary
@@ -357,7 +302,6 @@ export default function SellPage() {
                     </div>
                   ))}
                   
-                  {/* Upload Button/Area (Visible if less than 5 images) */}
                   {images.length < 5 && (
                     <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center cursor-pointer hover-elevate" data-testid="label-upload-images">
                       <Upload className="h-8 w-8 text-muted-foreground mb-2" />
@@ -366,7 +310,6 @@ export default function SellPage() {
                       </span>
                       <input
                         type="file"
-                        // Accepts common image formats, including HEIC/HEIF files.
                         accept="image/*,.heic,.HEIC,.heif,.HEIF"
                         multiple
                         onChange={handleImageUpload}
@@ -378,7 +321,6 @@ export default function SellPage() {
                 </div>
               </div>
 
-              {/* Form Field: Title */}
               <FormField
                 control={form.control}
                 name="title"
@@ -393,7 +335,6 @@ export default function SellPage() {
                 )}
               />
 
-              {/* Form Field: Category */}
               <FormField
                 control={form.control}
                 name="category"
@@ -403,7 +344,7 @@ export default function SellPage() {
                     <Select 
                       onValueChange={(value) => {
                         field.onChange(value);
-                        form.setValue("subcategory", ""); // Reset subcategory when category changes.
+                        form.setValue("subcategory", ""); // Reset subcategory when category changes
                       }} 
                       defaultValue={field.value}
                     >
@@ -425,7 +366,6 @@ export default function SellPage() {
                 )}
               />
 
-              {/* Form Field: Subcategory (Conditionally Rendered) */}
               {selectedCategory && availableSubcategories.length > 0 && (
                 <FormField
                   control={form.control}
@@ -453,7 +393,6 @@ export default function SellPage() {
                 />
               )}
 
-              {/* Form Field: Condition */}
               <FormField
                 control={form.control}
                 name="condition"
@@ -469,7 +408,6 @@ export default function SellPage() {
                       <SelectContent>
                         {CONDITIONS.map((cond) => (
                           <SelectItem key={cond} value={cond}>
-                            {/* Capitalizes first letter for display. */}
                             {cond.charAt(0).toUpperCase() + cond.slice(1)}
                           </SelectItem>
                         ))}
@@ -480,7 +418,6 @@ export default function SellPage() {
                 )}
               />
 
-              {/* Form Field: Price / Starting Bid */}
               <FormField
                 control={form.control}
                 name="price"
@@ -495,7 +432,6 @@ export default function SellPage() {
                 )}
               />
 
-              {/* Form Field: Description */}
               <FormField
                 control={form.control}
                 name="description"
@@ -515,7 +451,6 @@ export default function SellPage() {
                 )}
               />
 
-              {/* Submit Button */}
               <Button type="submit" className="w-full" disabled={createItemMutation.isPending} data-testid="button-list-item">
                 {createItemMutation.isPending ? "Listing..." : "List Item for Sale"}
               </Button>

@@ -1,14 +1,10 @@
 export default function PrivacyPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Page Title and Last Updated Date */}
       <h1 className="text-4xl font-bold font-heading mb-4">Privacy Policy</h1>
       <p className="text-sm text-muted-foreground mb-8">Last updated: November 9, 2024</p>
 
-      {/* prose-slate class applies default, readable typographic styles to nested HTML elements (h2, p, ul). */}
       <div className="prose prose-slate dark:prose-invert max-w-none">
-        
-        {/* Introduction Section */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Introduction</h2>
           <p className="text-muted-foreground mb-4">
@@ -16,11 +12,9 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        {/* Information We Collect Section */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Information We Collect</h2>
           <p className="text-muted-foreground mb-4">We collect information that you provide directly to us, including:</p>
-          {/* List of data categories collected */}
           <ul className="list-disc pl-6 text-muted-foreground space-y-2 mb-4">
             <li>Account information (name, email address, username, password)</li>
             <li>Profile information (profile picture, contact preferences)</li>
@@ -30,11 +24,9 @@ export default function PrivacyPage() {
           </ul>
         </section>
 
-        {/* How We Use Your Information Section */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">How We Use Your Information</h2>
           <p className="text-muted-foreground mb-4">We use the information we collect to:</p>
-          {/* List of purposes for data usage */}
           <ul className="list-disc pl-6 text-muted-foreground space-y-2 mb-4">
             <li>Provide, maintain, and improve our services</li>
             <li>Process transactions and send related information</li>
@@ -45,13 +37,11 @@ export default function PrivacyPage() {
           </ul>
         </section>
 
-        {/* Information Sharing Section */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Information Sharing</h2>
           <p className="text-muted-foreground mb-4">
             We do not sell your personal information. We may share your information only in the following circumstances:
           </p>
-          {/* List of conditions under which data might be shared */}
           <ul className="list-disc pl-6 text-muted-foreground space-y-2 mb-4">
             <li>With your consent</li>
             <li>To comply with legal requirements</li>
@@ -60,7 +50,6 @@ export default function PrivacyPage() {
           </ul>
         </section>
 
-        {/* Data Security Section */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Data Security</h2>
           <p className="text-muted-foreground mb-4">
@@ -68,11 +57,9 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        {/* User Rights Section */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Your Rights</h2>
           <p className="text-muted-foreground mb-4">You have the right to:</p>
-          {/* List of rights users have regarding their data */}
           <ul className="list-disc pl-6 text-muted-foreground space-y-2 mb-4">
             <li>Access and review your personal information</li>
             <li>Correct inaccurate information</li>
@@ -82,7 +69,6 @@ export default function PrivacyPage() {
           </ul>
         </section>
 
-        {/* Contact Us Section */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Contact Us</h2>
           <p className="text-muted-foreground mb-4">
