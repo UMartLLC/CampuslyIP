@@ -1,8 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// Imports icons used in the features section from lucide-react.
 import { ShoppingBag, Users, DollarSign } from "lucide-react";
 
+// -----------------------------------------------------------------------------
+// 1. LandingPage Component
+// -----------------------------------------------------------------------------
+
+// Defines the main landing page content for unauthenticated users.
 export default function LandingPage() {
+  // Array defining the static features displayed on the page.
   const features = [
     {
       icon: ShoppingBag,
@@ -32,9 +39,11 @@ export default function LandingPage() {
           <p className="text-xl md:text-2xl mb-8 opacity-90">
             The student marketplace for buying, selling, and trading on campus
           </p>
+          {/* Main Call-to-Action (CTA) Button */}
           <Button 
             size="lg" 
             variant="secondary"
+            // Directs the user to the API endpoint for login/authentication.
             onClick={() => window.location.href = '/api/login'}
             data-testid="button-login"
           >
@@ -47,12 +56,14 @@ export default function LandingPage() {
       <div className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">Why UniMart?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Maps through the 'features' array to render each feature as a Card. */}
           {features.map((feature) => {
-            const Icon = feature.icon;
+            const Icon = feature.icon; // Dynamically accesses the icon component.
             return (
               <Card key={feature.title}>
                 <CardHeader>
                   <div className="mb-4">
+                    {/* Renders the dynamic icon with primary color styling. */}
                     <Icon className="h-12 w-12 text-primary" />
                   </div>
                   <CardTitle>{feature.title}</CardTitle>
@@ -64,15 +75,17 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* CTA Section */}
+      {/* Secondary CTA Section */}
       <div className="bg-muted py-16">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to start?</h2>
           <p className="text-xl mb-8 text-muted-foreground">
             Join thousands of students buying and selling on campus
           </p>
+          {/* Secondary CTA Button */}
           <Button 
             size="lg"
+            // Directs the user to the API endpoint for login/authentication.
             onClick={() => window.location.href = '/api/login'}
             data-testid="button-login-cta"
           >
