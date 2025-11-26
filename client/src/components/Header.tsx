@@ -53,47 +53,66 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center gap-4">
-          {/* Hamburger Menu with Sidebar */}
-          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" data-testid="button-hamburger-menu">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64">
-              <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
-              </SheetHeader>
-              <nav className="flex flex-col gap-2 mt-6">
-                {navItems.map((item) => (
-                  <Button
-                    key={item.href}
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => setSidebarOpen(false)}
-                    asChild
-                  >
-                    <Link href={item.href} data-testid={item.testId}>
-                      {item.label}
-                    </Link>
+      {/* NOTE: px-* on this full-width container provides equal left/right padding
+          so hamburger and icons stay the same distance from the viewport edges */}
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        {/* 3-part flex: left (fixed) | center (flex-1) | right (fixed) */}
+        <div className="flex items-center h-16 gap-4">
+
+          {/* LEFT cluster: hamburger + logo + optional desktop nav */}
+          <div className="flex items-center flex-none gap-3">
+            {/* Hamburger Menu with Sidebar (keeps left padding consistent) */}
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" data-testid="button-hamburger-menu">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col gap-2 mt-6">
+                  {navItems.map((item) => (
+                    <Button
+                      key={item.href}
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => setSidebarOpen(false)}
+                      asChild
+                    >
+                      <Link href={item.href} data-testid={item.testId}>
+                        {item.label}
+                      </Link>
+                    </Button>
+                  ))}
+                  {/* duplicate About link inside sheet for mobile users */}
+                  <Button variant="ghost" className="w-full justify-start" onClick={() => setSidebarOpen(false)} asChild>
+                    <Link href="/about">About Us</Link>
                   </Button>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
+                </nav>
+              </SheetContent>
+            </Sheet>
 
-          {/* Logo */}
-          <Link href="/">
-            <div className="flex items-center space-x-2 hover-elevate rounded-md px-2 py-1" data-testid="link-home">
-              <ShoppingBag className="h-7 w-7 text-primary" />
-              <span className="text-xl font-bold text-primary font-heading">UniMart</span>
-            </div>
-          </Link>
+            {/* Logo */}
+            <Link href="/">
+              <div className="flex items-center space-x-2 hover-elevate rounded-md px-2 py-1" data-testid="link-home">
+                <ShoppingBag className="h-7 w-7 text-primary" />
+                <span className="text-xl font-bold text-primary font-heading">Campusly</span>
+              </div>
+            </Link>
 
-          {/* Search Bar */}
-          <div className="flex-1 max-w-2xl">
+            {/* Desktop inline nav (visible md+) - placed immediately after logo */}
+            <nav className="hidden md:flex items-center space-x-6 ml-2">
+              <Link href="/about" className="text-sm font-medium hover:text-primary">About Us</Link>
+              <Link href="/items" className="text-sm font-medium hover:text-primary">Marketplace</Link>
+              <Link href="/LocoLoco" className="text-sm font-medium hover:text-primary">LocoLoco</Link>
+            </nav>
+          </div>
+
+          {/* CENTER: Search bar that grows/shrinks to fill space between left & right */}
+          {/* min-w-0 is critical so the input can shrink inside a flex container */}
+          <div className="flex-1 min-w-0 px-4">
             <form onSubmit={handleSearch} className="w-full">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -101,27 +120,31 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
                   placeholder="Search for textbooks, electronics, furniture..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="w-full pl-10"
                   data-testid="input-search"
                 />
               </div>
             </form>
           </div>
 
-          {/* Right Side Icons */}
-          <div className="flex items-center gap-1">
+          {/* RIGHT cluster: icons pinned to the right with same px spacing as left */}
+          <div className="flex items-center flex-none gap-1">
+            <Button variant="ghost" size="icon" onClick={onToggleTheme} data-testid="button-theme">
+              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+
             <Link href="/messages">
               <Button variant="ghost" size="icon" data-testid="button-chat">
                 <MessageCircle className="h-5 w-5" />
               </Button>
             </Link>
-            
+
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative" data-testid="button-cart">
                 <ShoppingCart className="h-5 w-5" />
                 {cartItems.length > 0 && (
-                  <Badge 
-                    variant="default" 
+                  <Badge
+                    variant="default"
                     className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
                     data-testid="badge-cart-count"
                   >
@@ -130,11 +153,7 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
                 )}
               </Button>
             </Link>
-            
-            <Button variant="ghost" size="icon" onClick={onToggleTheme} data-testid="button-theme">
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" data-testid="button-profile">
@@ -142,9 +161,7 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  Account
-                </DropdownMenuLabel>
+                <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/account?tab=dashboard" data-testid="link-dashboard">
@@ -200,12 +217,6 @@ export default function Header({ onSearch, onToggleTheme, isDark }: HeaderProps)
                     Legal
                   </Link>
                 </DropdownMenuItem>
-                {/* Logout temporarily disabled - authentication removed */}
-                {/* <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => logoutMutation.mutate()} data-testid="button-logout">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Log Out
-                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
