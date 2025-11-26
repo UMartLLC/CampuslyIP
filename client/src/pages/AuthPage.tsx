@@ -1,7 +1,10 @@
 // Referenced from blueprint:javascript_auth_all_persistance
 import { useState, useEffect } from "react";
+// Imports the custom hook to access global authentication state (user, mutations).
 import { useAuth } from "@/hooks/use-auth";
+// Imports useLocation hook from wouter for programmatic redirection.
 import { useLocation } from "wouter";
+// Imports UI components.
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,12 +16,18 @@ import { ShoppingBag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 
+// -----------------------------------------------------------------------------
+// 1. AuthPage Component
+// -----------------------------------------------------------------------------
+
 export default function AuthPage() {
+  // Accesses authentication state and mutation functions from context.
   const { user, loginMutation, registerMutation } = useAuth();
-  const [, setLocation] = useLocation();
+  const [, setLocation] = useLocation(); // Function to navigate using wouter.
+  // State controls which tab (Login or Register) is currently visible.
   const [activeTab, setActiveTab] = useState("login");
 
-  // Form states
+  // Form states for tracking user input.
   const [loginData, setLoginData] = useState({ username: "", password: "", rememberMe: false });
   const [registerData, setRegisterData] = useState({
     username: "",
@@ -27,26 +36,33 @@ export default function AuthPage() {
     firstName: "",
     lastName: "",
   });
+  // State controls the visibility of the "Forgot Password" dialog.
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [resetData, setResetData] = useState({ username: "", newPassword: "", confirmPassword: "" });
   const { toast } = useToast();
 
-  // Redirect if already logged in
+  // Redirects the user to the home page if they are already logged in.
   useEffect(() => {
     if (user) {
       setLocation("/");
     }
   }, [user, setLocation]);
 
+  // Handler for the Login form submission.
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     loginMutation.mutate(loginData);
   };
 
+  // Handler for the Register form submission.
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     registerMutation.mutate(registerData);
   };
+
+  // -----------------------------------------------------------------------------
+  // 2. Password Reset Mutation
+  // -----------------------------------------------------------------------------
 
   const resetPasswordMutation = useMutation({
     mutationFn: async (data: { username: string; newPassword: string }) => {
@@ -57,7 +73,7 @@ export default function AuthPage() {
       });
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(error);
+        throw new Error(error); // Throws error message received from server.
       }
       return response.json();
     },
@@ -66,8 +82,8 @@ export default function AuthPage() {
         title: "Password Reset Successful",
         description: "You can now log in with your new password.",
       });
-      setResetPasswordOpen(false);
-      setResetData({ username: "", newPassword: "", confirmPassword: "" });
+      setResetPasswordOpen(false); // Closes the dialog.
+      setResetData({ username: "", newPassword: "", confirmPassword: "" }); // Clears reset form.
     },
     onError: (error: Error) => {
       toast({
@@ -78,8 +94,10 @@ export default function AuthPage() {
     },
   });
 
+  // Handler for the Reset Password form submission.
   const handleResetPassword = (e: React.FormEvent) => {
     e.preventDefault();
+    // Client-side validation: check if new passwords match.
     if (resetData.newPassword !== resetData.confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -88,28 +106,36 @@ export default function AuthPage() {
       });
       return;
     }
+    // Triggers the reset password mutation.
     resetPasswordMutation.mutate({
       username: resetData.username,
       newPassword: resetData.newPassword,
     });
   };
 
+  // -----------------------------------------------------------------------------
+  // 3. Component Render
+  // -----------------------------------------------------------------------------
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      {/* Left side - Form */}
+      {/* Left side - Authentication Form */}
       <div className="flex items-center justify-center p-8">
         <div className="w-full max-w-md">
+          {/* Logo/Brand */}
           <div className="flex items-center gap-2 mb-8">
             <ShoppingBag className="h-8 w-8 text-primary" />
             <span className="text-2xl font-bold text-primary">UniMart</span>
           </div>
 
+          {/* Tabs Control */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login" data-testid="tab-login">Log In</TabsTrigger>
               <TabsTrigger value="register" data-testid="tab-register">Sign Up</TabsTrigger>
             </TabsList>
 
+            {/* Login Tab Content */}
             <TabsContent value="login">
               <Card>
                 <CardHeader>
@@ -118,6 +144,7 @@ export default function AuthPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleLogin} className="space-y-4">
+                    {/* Username Input */}
                     <div className="space-y-2">
                       <Label htmlFor="login-username">Username</Label>
                       <Input
@@ -129,6 +156,7 @@ export default function AuthPage() {
                         data-testid="input-login-username"
                       />
                     </div>
+                    {/* Password Input */}
                     <div className="space-y-2">
                       <Label htmlFor="login-password">Password</Label>
                       <Input
@@ -140,6 +168,8 @@ export default function AuthPage() {
                         data-testid="input-login-password"
                       />
                     </div>
+                    
+                    {/* Remember Me and Forgot Password */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Checkbox
@@ -152,6 +182,8 @@ export default function AuthPage() {
                           Remember me
                         </Label>
                       </div>
+                      
+                      {/* Forgot Password Dialog */}
                       <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
                         <DialogTrigger asChild>
                           <Button variant="ghost" className="px-0 text-sm" data-testid="button-forgot-password">
@@ -166,6 +198,7 @@ export default function AuthPage() {
                             </DialogDescription>
                           </DialogHeader>
                           <form onSubmit={handleResetPassword} className="space-y-4">
+                            {/* Reset Form Inputs */}
                             <div className="space-y-2">
                               <Label htmlFor="reset-username">Username</Label>
                               <Input
@@ -206,6 +239,7 @@ export default function AuthPage() {
                         </DialogContent>
                       </Dialog>
                     </div>
+                    {/* Login Submit Button */}
                     <Button type="submit" className="w-full" disabled={loginMutation.isPending} data-testid="button-login-submit">
                       {loginMutation.isPending ? "Logging in..." : "Log In"}
                     </Button>
@@ -214,6 +248,7 @@ export default function AuthPage() {
               </Card>
             </TabsContent>
 
+            {/* Register Tab Content */}
             <TabsContent value="register">
               <Card>
                 <CardHeader>
@@ -222,6 +257,7 @@ export default function AuthPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleRegister} className="space-y-4">
+                    {/* Registration Inputs */}
                     <div className="space-y-2">
                       <Label htmlFor="register-username">Username *</Label>
                       <Input
@@ -276,6 +312,7 @@ export default function AuthPage() {
                         />
                       </div>
                     </div>
+                    {/* Register Submit Button */}
                     <Button type="submit" className="w-full" disabled={registerMutation.isPending} data-testid="button-register-submit">
                       {registerMutation.isPending ? "Creating account..." : "Create Account"}
                     </Button>
@@ -287,7 +324,7 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* Right side - Hero */}
+      {/* Right side - Hero/Marketing Content */}
       <div className="hidden lg:flex bg-primary text-primary-foreground p-12 items-center justify-center">
         <div className="max-w-md">
           <h1 className="text-4xl font-bold mb-6">Student Marketplace</h1>
