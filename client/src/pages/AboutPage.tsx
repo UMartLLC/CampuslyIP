@@ -28,7 +28,7 @@ export default function AboutPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-4xl font-bold font-heading mb-4">About CampusMarket</h1>
+      <h1 className="text-4xl font-bold font-heading mb-4">About Campusly</h1>
       <p className="text-lg text-muted-foreground mb-8">
         Your trusted university marketplace for buying, selling, and trading within your campus community
       </p>

@@ -141,7 +141,7 @@ export default function Footer() {
         {/* COPYRIGHT BELOW DIVIDER, RIGHT-ALIGNED */}
         <div className="flex justify-end mt-6">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Campusly. All rights reserved.
+            © {new Date().getFullYear()} Campusly LLC. All rights reserved.
           </p>
         </div>
       </div>
