@@ -29,20 +29,20 @@ export default function AboutPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-4xl font-bold font-heading mb-4">About CampusMarket</h1>
       <p className="text-lg text-muted-foreground mb-8">
-        Your trusted student marketplace for buying, selling, and trading within your campus community
+        Your trusted university marketplace for buying, selling, and trading within your campus community
       </p>
 
       <div className="prose prose-slate dark:prose-invert max-w-none">
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-4">Our Mission</h2>
           <p className="text-muted-foreground mb-4">
-            CampusMarket was created to solve a simple problem: students need an easy, safe, and trusted way to buy and sell items within their campus community. Whether it's textbooks, furniture, electronics, or everyday essentials, we believe students should be able to exchange goods conveniently while saving money and reducing waste.
+            Campusly was created to solve a simple problem: students need an easy, safe, and trusted way to buy and sell items within their campus community. Whether it's textbooks, furniture, electronics, or everyday essentials, we believe students should be able to exchange goods conveniently while saving money and reducing waste.
           </p>
           <p className="text-muted-foreground mb-4">
             Our platform connects students directly, fostering a sense of community while making campus life more affordable and sustainable.
           </p>
         </section>
-
+        
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-6">Our Values</h2>
           <div className="grid md:grid-cols-2 gap-6">
@@ -62,6 +62,15 @@ export default function AboutPage() {
               </Card>
             ))}
           </div>
+        </section>
+        
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold mb-4">Our Green Initiative</h2>
+          <p className="text-muted-foreground mb-4">
+            We’re committed to supporting a greener campus by extending the lifecycle of everyday items. By enabling students, faculty, and staff to buy and sell 
+            pre-owned goods within their own university community, our platform reduces unnecessary waste, minimizes the demand for new manufacturing, and lowers the environmental impact associated with shipping. 
+            Every exchanged textbook, laptop, or piece of furniture helps keep useful items out of landfills and promotes a more sustainable culture of reuse.
+          </p>
         </section>
 
         <section className="mb-12">
