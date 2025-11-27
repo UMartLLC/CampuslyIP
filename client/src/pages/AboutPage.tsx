@@ -80,36 +80,57 @@ export default function AboutPage() {
           </p>
         </section>
 
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold mb-4">How It Works</h2>
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
-                1
-              </div>
+        {/* HOW IT WORKS */}
+        <section className="mb-16">
+          <h2 className="text-4xl font-bold font-heading mb-4">How It Works</h2>
+          
+          <div className="space-y-12">
+
+            {/* Step 1 */}
+            <div className="grid md:grid-cols-2 gap-6 items-center bg-muted/30 rounded-xl p-4 md:p-6">
+              <img
+                src="/images/how-1.jpg"
+                alt="Create Account"
+                className="w-full h-56 md:h-64 object-cover rounded-lg shadow"
+              />
               <div>
-                <h3 className="font-semibold mb-1">Create Your Account</h3>
-                <p className="text-muted-foreground">Sign up with your student email to join your campus marketplace.</p>
+                <h3 className="text-xl font-semibold mb-2">Create Your Account</h3>
+                <p className="text-muted-foreground">
+                  Sign up using your university credentials to join your verified campus marketplace.
+                </p>
               </div>
             </div>
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
-                2
+
+            {/* Step 2 */}
+            <div className="grid md:grid-cols-2 gap-6 items-center bg-muted/30 rounded-xl p-4 md:p-6">
+              <div className="order-2 md:order-1">
+                <h3 className="text-xl font-semibold mb-2">List Your Items</h3>
+                <p className="text-muted-foreground">
+                  Upload photos, set a price, and provide a short description so buyers know exactly what you’re offering.
+                </p>
               </div>
+              <img
+                src="/images/how-2.jpg"
+                alt="List Items"
+                className="order-1 md:order-2 w-full h-56 md:h-64 object-cover rounded-lg shadow"
+              />
+            </div>
+
+            {/* Step 3 */}
+            <div className="grid md:grid-cols-2 gap-6 items-center bg-muted/30 rounded-xl p-4 md:p-6">
+              <img
+                src="/images/how-3.jpg"
+                alt="Connect & Transact"
+                className="w-full h-56 md:h-64 object-cover rounded-lg shadow"
+              />
               <div>
-                <h3 className="font-semibold mb-1">List Your Items</h3>
-                <p className="text-muted-foreground">Upload photos, set your price, and describe what you're selling.</p>
+                <h3 className="text-xl font-semibold mb-2">Connect & Transact</h3>
+                <p className="text-muted-foreground">
+                  Message buyers or sellers, arrange meetups on campus, and complete secure transactions with confidence.
+                </p>
               </div>
             </div>
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
-                3
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">Connect & Transact</h3>
-                <p className="text-muted-foreground">Chat with buyers or sellers, arrange meetups, and complete secure transactions.</p>
-              </div>
-            </div>
+
           </div>
         </section>
 
