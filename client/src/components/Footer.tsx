@@ -13,8 +13,8 @@ export default function Footer() {
           {/* LEFT COLUMN — Branding + Social */}
           <div className="space-y-8">
             <h2 className="text-3xl font-bold leading-tight">
-              YOUR CAMPUS MARKETPLACE
-            </h2>
+              WE MADE IT SO YOU CAN GET RID OF IT 
+            </h2> {/* REQUIRE GOOD SLOGAN BEFORE LAUNCH */}
 
             <div className="space-y-3">
               <h3 className="font-semibold text-base uppercase tracking-wide text-muted-foreground">
