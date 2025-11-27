@@ -164,7 +164,7 @@ export default function EditItemDialog({ item, open, onOpenChange, onSubmit, isL
           console.error('Error processing image:', error);
           toast({
             title: "Error processing image",
-            description: `Failed to process ${file.name}. ${error instanceof Error ? error.message : 'Please try another image.'}`,
+            description: `Failed to process ${file.name}. ${error instanceof Error ? error.message : 'Please try another image, or convert the format.'}`,
             variant: "destructive",
           });
         }

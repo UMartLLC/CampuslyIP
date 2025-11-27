@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Shield, Zap, Heart } from "lucide-react";
+import CampuslyGreen from '@assets/generated_images/CampuslyGreen.png';
 
 export default function AboutPage() {
   const values = [
@@ -42,7 +43,7 @@ export default function AboutPage() {
             Our platform connects students directly, fostering a sense of community while making campus life more affordable and sustainable.
           </p>
         </section>
-        
+
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-6">Our Values</h2>
           <div className="grid md:grid-cols-2 gap-6">
@@ -63,16 +64,25 @@ export default function AboutPage() {
             ))}
           </div>
         </section>
-        
+
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold mb-4">Our Green Initiative</h2>
+          <h2 className="text-2xl font-semibold mb-4">
+            <span className="inline-flex items-center gap-2 align-middle">
+              Our Green Initiative
+              <img
+                src={CampuslyGreen}
+                alt="Leaf icon"
+                className="w-6 h-6 m-0 p-0 inline"
+              />
+            </span>
+          </h2>
           <p className="text-muted-foreground mb-4">
             Sustainability is a core pillar at Campusly, and our methods and policies are always changing
             to ensure we can deliver excellent service with a greener environment.
           </p>
           <p className="text-muted-foreground mb-4">
-            We’re committed to supporting a green campus by extending the lifecycle of everyday items. By enabling students, faculty, and staff to buy and sell 
-            pre-owned goods within their own university community, our platform reduces unnecessary waste, minimizes the demand for new manufacturing, and lowers the environmental impact associated with shipping. 
+            We’re committed to supporting a green campus by extending the lifecycle of everyday items. By enabling students, faculty, and staff to buy and sell
+            pre-owned goods within their own university community, our platform reduces unnecessary waste, minimizes the demand for new manufacturing, and lowers the environmental impact associated with shipping.
             Every exchanged textbook, laptop, or piece of furniture helps keep useful items out of landfills and promotes a more sustainable culture of reuse.
           </p>
           <p className="text-muted-foreground mb-4">
@@ -83,7 +93,7 @@ export default function AboutPage() {
         {/* HOW IT WORKS */}
         <section className="mb-16">
           <h2 className="text-4xl font-bold font-heading mb-4">How It Works</h2>
-          
+
           <div className="space-y-12">
 
             {/* Step 1 */}

@@ -30,7 +30,7 @@ export default function LandingPage() {
             Welcome to Campusly
           </h1>
           <p className="text-xl md:text-2xl mb-8 opacity-90">
-            The student marketplace for buying, selling, and trading on campus
+            The university marketplace for buying, selling, and trading on campus
           </p>
           <Button 
             size="lg" 
@@ -45,7 +45,7 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <div className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Why UniMart?</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">Why Campusly?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature) => {
             const Icon = feature.icon;
@@ -69,7 +69,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to start?</h2>
           <p className="text-xl mb-8 text-muted-foreground">
-            Join thousands of students buying and selling on campus
+            Join the thousands of students buying and selling on campus
           </p>
           <Button 
             size="lg"

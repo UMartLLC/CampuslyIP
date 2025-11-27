@@ -32,7 +32,7 @@ export default function FAQPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-4xl font-bold font-heading mb-4">Frequently Asked Questions</h1>
       <p className="text-lg text-muted-foreground mb-8">
-        Find answers to common questions about using Campusly's marketpace
+        Find answers to commonly asked questions about Campusly
       </p>
 
       <div className="space-y-4">
