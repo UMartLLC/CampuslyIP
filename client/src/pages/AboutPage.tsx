@@ -67,9 +67,16 @@ export default function AboutPage() {
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-4">Our Green Initiative</h2>
           <p className="text-muted-foreground mb-4">
-            We’re committed to supporting a greener campus by extending the lifecycle of everyday items. By enabling students, faculty, and staff to buy and sell 
+            Sustainability is a core pillar at Campusly, and our methods and policies are always changing
+            to ensure we can deliver excellent service with a greener environment.
+          </p>
+          <p className="text-muted-foreground mb-4">
+            We’re committed to supporting a green campus by extending the lifecycle of everyday items. By enabling students, faculty, and staff to buy and sell 
             pre-owned goods within their own university community, our platform reduces unnecessary waste, minimizes the demand for new manufacturing, and lowers the environmental impact associated with shipping. 
             Every exchanged textbook, laptop, or piece of furniture helps keep useful items out of landfills and promotes a more sustainable culture of reuse.
+          </p>
+          <p className="text-muted-foreground mb-4">
+            Still curious about our green mission? As Campusly evolves, we’ll continue enhancing our eco-friendly initiatives and include more specific information on this page soon.
           </p>
         </section>
 
