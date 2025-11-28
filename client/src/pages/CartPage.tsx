@@ -1,164 +1,30 @@
-import React from 'react';
-import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
-import { ShoppingCart, Trash2, Package } from 'lucide-react';
-import { Link } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { ShoppingCart, Trash2, Package, MessageCircle } from 'lucide-react';
+import { Link, useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import type { CartItemWithDetails } from "@shared/schema";
 
-// 1. Define the QueryClient directly in the file
-const queryClient = new QueryClient(); 
-
-// 2. Mock the type interface for the Cart Item
-interface ItemDetails {
-  id: string;
-  title: string;
-  price: string;
-  description: string;
-  category: string;
-  condition: string;
-  images: string[];
-}
-
-interface CartItemWithDetails {
-  id: string;
-  itemId: string;
-  quantity: number;
-  item: ItemDetails;
-}
-
-// --- TypeScript Interfaces for Props ---
-
-// Base interface for components that accept children and className
-interface BaseProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface ButtonProps extends BaseProps {
-  variant?: 'default' | 'outline' | 'destructive' | 'secondary';
-  size?: 'default' | 'lg' | 'sm';
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  disabled?: boolean;
-  'data-testid'?: string;
-}
-
-interface CardProps extends BaseProps {}
-
-interface CardHeaderProps extends BaseProps {}
-
-interface CardTitleProps extends BaseProps {}
-
-interface CardContentProps extends BaseProps {}
-
-interface BadgeProps extends BaseProps {
-  variant?: 'default' | 'secondary' | 'outline';
-}
-
-// Interface for the Toast properties (FIXES YOUR CURRENT ERROR)
-interface ToastProps {
-  title: string;
-  description: string;
-  variant?: 'default' | 'destructive' | 'secondary' | 'outline';
-}
-
-// --- Component Replacements (Now typed correctly) ---
-
-const useToast = () => {
-  return {
-    // Explicitly type the destructured parameter object with ToastProps
-    toast: ({ title, description, variant }: ToastProps) => { 
-      console.log(`Toast: ${title} - ${description} (Variant: ${variant})`);
-      alert(`${title}: ${description}`);
-    },
-  };
+const getConditionColor = (condition: string) => {
+  switch (condition) {
+    case "new": return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
+    case "like-new": return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
+    case "good": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400";
+    case "fair": return "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400";
+    default: return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
+  }
 };
 
-const Card: React.FC<CardProps> = ({ children, className = '' }) => (
-  <div className={`rounded-lg border bg-white text-gray-900 shadow-sm ${className}`}>
-    {children}
-  </div>
-);
-
-const CardHeader: React.FC<CardHeaderProps> = ({ children, className = '' }) => (
-  <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>
-    {children}
-  </div>
-);
-
-const CardTitle: React.FC<CardTitleProps> = ({ children, className = '' }) => (
-  <h3 className={`text-xl font-semibold leading-none tracking-tight ${className}`}>
-    {children}
-  </h3>
-);
-
-const CardContent: React.FC<CardContentProps> = ({ children, className = '' }) => (
-  <div className={`p-6 pt-0 ${className}`}>
-    {children}
-  </div>
-);
-
-const Button: React.FC<ButtonProps> = ({ 
-  children, 
-  className = '', 
-  variant = 'default', 
-  size = 'default', 
-  onClick, 
-  disabled, 
-  'data-testid': dataTestId, 
-  ...props 
-}) => {
-  let baseClasses = 'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50';
-  let variantClasses = '';
-  let sizeClasses = '';
-
-  // Simulate common button styles
-  if (variant === 'default') {
-    variantClasses = 'bg-blue-600 text-white shadow hover:bg-blue-700';
-  } else if (variant === 'outline') {
-    variantClasses = 'border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-100';
-  }
-
-  if (size === 'default') {
-    sizeClasses = 'h-9 px-4 py-2';
-  } else if (size === 'lg') {
-    sizeClasses = 'h-10 px-6';
-  } else if (size === 'sm') {
-    sizeClasses = 'h-8 rounded-md px-3 text-xs';
-  }
-
-  return (
-    <button
-      className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
-      onClick={onClick}
-      disabled={disabled}
-      data-testid={dataTestId}
-      {...props}
-    >
-      {children}
-    </button>
-  );
+const formatCondition = (condition: string) => {
+  return condition.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
-
-const Badge: React.FC<BadgeProps> = ({ children, className = '', variant = 'default' }) => {
-  let baseClasses = 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors';
-  let variantClasses = '';
-
-  // Simulate common badge styles
-  if (variant === 'secondary') {
-    variantClasses = 'bg-gray-100 text-gray-800 border-transparent';
-  } else if (variant === 'outline') {
-    variantClasses = 'bg-white text-gray-600 border-gray-300';
-  }
-
-  return (
-    <div className={`${baseClasses} ${variantClasses} ${className}`}>
-      {children}
-    </div>
-  );
-};
-
-// --- CartPage Component ---
 
 export default function CartPage() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const { data: cartItems = [], isLoading } = useQuery<CartItemWithDetails[]>({
     queryKey: ['/api/cart'],
@@ -166,13 +32,7 @@ export default function CartPage() {
 
   const removeFromCartMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      const response = await fetch(`/api/cart/${itemId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to remove from cart');
-      }
+      await apiRequest('DELETE', `/api/cart/${itemId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
@@ -192,13 +52,7 @@ export default function CartPage() {
 
   const clearCartMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/cart', {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to clear cart');
-      }
+      await apiRequest('DELETE', '/api/cart');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
@@ -216,6 +70,11 @@ export default function CartPage() {
     },
   });
 
+  const handleContactSeller = (sellerId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLocation(`/messages?seller=${sellerId}`);
+  };
+
   const totalAmount = cartItems.reduce((sum, cartItem) => {
     return sum + parseFloat(cartItem.item.price);
   }, 0);
@@ -224,7 +83,7 @@ export default function CartPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <p className="text-gray-500">Loading your cart...</p>
+          <p className="text-muted-foreground">Loading your cart...</p>
         </div>
       </div>
     );
@@ -233,9 +92,9 @@ export default function CartPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header with Title and Clear Cart Button */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <ShoppingCart className="h-8 w-8 text-blue-600" />
+          <ShoppingCart className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Shopping Cart</h1>
         </div>
         {cartItems.length > 0 && (
@@ -255,9 +114,9 @@ export default function CartPage() {
         /* Empty Cart State */
         <Card>
           <CardContent className="py-12 text-center">
-            <Package className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+            <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-lg font-medium mb-2">Your cart is empty</p>
-            <p className="text-gray-500 mb-4">Browse items and add them to your cart</p>
+            <p className="text-muted-foreground mb-4">Browse items and add them to your cart</p>
             <Link href="/items">
               <Button data-testid="button-browse-items">
                 Browse Items
@@ -270,61 +129,91 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Cart Items List */}
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((cartItem) => (
-              <Card key={cartItem.id} data-testid={`card-cart-item-${cartItem.item.id}`}>
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    {/* Item Image */}
-                    {cartItem.item.images && cartItem.item.images.length > 0 && (
-                      <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                        <img
-                          src={cartItem.item.images[0]}
-                          alt={cartItem.item.title}
-                          className="w-full h-full object-cover"
-                          data-testid={`img-cart-item-${cartItem.item.id}`}
-                        />
+            {cartItems.map((cartItem) => {
+              const itemImage = cartItem.item.images?.[0] || `/api/placeholder/200/200`;
+              
+              return (
+                <Card key={cartItem.id} data-testid={`card-cart-item-${cartItem.item.id}`}>
+                  <CardContent className="p-4">
+                    <div className="flex gap-4">
+                      {/* Item Image - Larger and more prominent */}
+                      <Link href={`/item/${cartItem.item.id}`}>
+                        <div className="w-28 h-28 md:w-32 md:h-32 flex-shrink-0 overflow-hidden rounded-lg border cursor-pointer hover:opacity-90 transition-opacity">
+                          <img
+                            src={itemImage}
+                            alt={cartItem.item.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = `/api/placeholder/200/200`;
+                            }}
+                            data-testid={`img-cart-item-${cartItem.item.id}`}
+                          />
+                        </div>
+                      </Link>
+                      
+                      {/* Item Details */}
+                      <div className="flex-1 min-w-0">
+                        <Link href={`/item/${cartItem.item.id}`}>
+                          <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors cursor-pointer" data-testid={`text-cart-item-title-${cartItem.item.id}`}>
+                            {cartItem.item.title}
+                          </h3>
+                        </Link>
+                        
+                        {/* Category and Condition Badges */}
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          <Badge variant="secondary" data-testid={`badge-cart-item-category-${cartItem.item.id}`}>
+                            {cartItem.item.category}
+                          </Badge>
+                          <Badge 
+                            className={getConditionColor(cartItem.item.condition)} 
+                            data-testid={`badge-cart-item-condition-${cartItem.item.id}`}
+                          >
+                            {formatCondition(cartItem.item.condition)}
+                          </Badge>
+                        </div>
+                        
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                          {cartItem.item.description}
+                        </p>
+                        
+                        <p className="text-sm text-muted-foreground">
+                          Seller: Anonymous Seller
+                        </p>
+
+                        {/* Contact Seller Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={(e) => handleContactSeller(cartItem.item.sellerId, e)}
+                          data-testid={`button-contact-seller-${cartItem.item.id}`}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Contact Seller
+                        </Button>
                       </div>
-                    )}
-                    {/* Item Details */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg mb-1" data-testid={`text-cart-item-title-${cartItem.item.id}`}>
-                        {cartItem.item.title}
-                      </h3>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        <Badge variant="secondary" data-testid={`badge-cart-item-category-${cartItem.item.id}`}>
-                          {cartItem.item.category}
-                        </Badge>
-                        <Badge variant="outline" data-testid={`badge-cart-item-condition-${cartItem.item.id}`}>
-                          {cartItem.item.condition}
-                        </Badge>
+                      
+                      {/* Price and Remove Button */}
+                      <div className="flex flex-col items-end justify-between">
+                        <span className="font-bold text-xl text-primary" data-testid={`text-cart-item-price-${cartItem.item.id}`}>
+                          ${parseFloat(cartItem.item.price).toFixed(2)}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeFromCartMutation.mutate(cartItem.item.id)}
+                          disabled={removeFromCartMutation.isPending}
+                          data-testid={`button-remove-cart-item-${cartItem.item.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
                       </div>
-                      <p className="text-sm text-gray-500 line-clamp-2">
-                        {cartItem.item.description}
-                      </p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Seller: Anonymous Seller
-                      </p>
                     </div>
-                    {/* Price and Remove Button */}
-                    <div className="flex flex-col items-end justify-between">
-                      <span className="font-bold text-xl text-blue-600" data-testid={`text-cart-item-price-${cartItem.item.id}`}>
-                        ${parseFloat(cartItem.item.price).toFixed(2)}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeFromCartMutation.mutate(cartItem.item.id)}
-                        disabled={removeFromCartMutation.isPending}
-                        data-testid={`button-remove-cart-item-${cartItem.item.id}`}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Remove
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Order Summary */}
@@ -336,17 +225,17 @@ export default function CartPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Items ({cartItems.length})</span>
+                    <span className="text-muted-foreground">Items ({cartItems.length})</span>
                     <span data-testid="text-subtotal">${totalAmount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Shipping</span>
+                    <span className="text-muted-foreground">Shipping</span>
                     <span className="text-green-600">Free</span>
                   </div>
-                  <div className="border-t border-gray-200 pt-2 mt-2">
+                  <div className="border-t pt-2 mt-2">
                     <div className="flex justify-between font-semibold text-lg">
                       <span>Total</span>
-                      <span className="text-blue-600" data-testid="text-total">${totalAmount.toFixed(2)}</span>
+                      <span className="text-primary" data-testid="text-total">${totalAmount.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
