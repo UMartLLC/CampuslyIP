@@ -78,23 +78,23 @@ export default function ItemDetailPage() {
   const isFavorited = favorites.some((fav) => fav.itemId === itemId);
 
   const addToCartMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (itemToAdd: { id: string; title: string }) => {
       const response = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ itemId: item?.id }),
+        body: JSON.stringify({ itemId: itemToAdd.id }),
       });
       if (!response.ok) {
         throw new Error("Failed to add to cart");
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, itemToAdd) => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
       toast({
         title: "Added to cart",
-        description: `${item?.title} has been added to your cart.`,
+        description: `${itemToAdd.title} has been added to your cart.`,
       });
     },
     onError: () => {
@@ -392,7 +392,7 @@ export default function ItemDetailPage() {
             <Button
               size="lg"
               className="flex-1"
-              onClick={() => addToCartMutation.mutate()}
+              onClick={() => addToCartMutation.mutate({ id: item.id, title: item.title })}
               disabled={addToCartMutation.isPending || item.status !== "available"}
               data-testid="button-add-to-cart"
             >
