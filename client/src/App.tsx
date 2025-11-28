@@ -24,6 +24,7 @@ import TermsPage from "@/pages/TermsPage";
 import FAQPage from "@/pages/FAQPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import AboutPage from "@/pages/AboutPage";
+import ItemDetailPage from "@/pages/ItemDetailPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -33,6 +34,7 @@ function Router() {
       {/* <Route path="/auth" component={AuthPage} /> */}
       <Route path="/" component={Welcome} />
       <Route path="/items" component={ItemsPage} />
+      <Route path="/items/:id" component={ItemDetailPage} />
       <Route path="/account" component={AccountPage} />
       <Route path="/messages" component={MessagesPage} />
       <Route path="/cart" component={CartPage} />

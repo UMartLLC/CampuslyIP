@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import ItemsGrid from "@/components/ItemsGrid";
-import PaymentModal from "@/components/PaymentModal";
 import type { ItemWithSeller } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Menu, X, SlidersHorizontal, Search } from "lucide-react";
@@ -13,9 +12,7 @@ import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/cat
 import { useLocation } from "wouter";
 
 export default function ItemsPage() {
-  const [location] = useLocation();
-  const [selectedItem, setSelectedItem] = useState<ItemWithSeller | null>(null);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [location, setLocation] = useLocation();
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
@@ -113,26 +110,11 @@ export default function ItemsPage() {
   });
 
   const handleItemClick = (item: ItemWithSeller) => {
-    setSelectedItem(item);
-    setIsPaymentModalOpen(true);
+    setLocation(`/items/${item.id}`);
   };
 
   const handleContactSeller = (item: ItemWithSeller) => {
-    const sellerName = item.seller.firstName && item.seller.lastName 
-      ? `${item.seller.firstName} ${item.seller.lastName}`
-      : item.seller.username;
-    console.log('Contacting seller:', sellerName);
-    alert(`Coming soon: Direct messaging with ${sellerName}`);
-  };
-
-  const handlePaymentComplete = (paymentMethod: string) => {
-    console.log('Payment completed:', {
-      item: selectedItem?.id,
-      method: paymentMethod
-    });
-    
-    setIsPaymentModalOpen(false);
-    setSelectedItem(null);
+    setLocation("/messages");
   };
 
   if (isLoading) {
@@ -313,16 +295,6 @@ export default function ItemsPage() {
           )}
         </div>
       </div>
-
-      <PaymentModal
-        isOpen={isPaymentModalOpen}
-        onClose={() => {
-          setIsPaymentModalOpen(false);
-          setSelectedItem(null);
-        }}
-        item={selectedItem}
-        onPaymentComplete={handlePaymentComplete}
-      />
     </div>
   );
 }
