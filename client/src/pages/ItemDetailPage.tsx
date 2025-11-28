@@ -379,27 +379,9 @@ export default function ItemDetailPage() {
 
           <Separator />
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={item.seller?.profileImageUrl || undefined} />
-                  <AvatarFallback>{sellerInitials}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium" data-testid="text-seller-name">{sellerName}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Seller</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Quantity Selector */}
           {maxQuantity > 1 && item.status === "available" && (
-            <div className="flex items-center gap-4 pt-4">
+            <div className="flex items-center gap-4">
               <span className="text-sm font-medium">Quantity:</span>
               <div className="flex items-center border rounded-md">
                 <Button
@@ -430,7 +412,7 @@ export default function ItemDetailPage() {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button
               size="lg"
               className="flex-1"
