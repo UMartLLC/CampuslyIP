@@ -393,14 +393,6 @@ export default function ItemDetailPage() {
                   </div>
                   <p className="text-sm text-muted-foreground">Seller</p>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setLocation("/messages")}
-                  data-testid="button-contact-seller"
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Contact
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -456,10 +448,11 @@ export default function ItemDetailPage() {
             <Button
               size="lg"
               variant="secondary"
-              onClick={() => setLocation("/cart")}
-              data-testid="button-view-cart"
+              onClick={() => setLocation("/messages")}
+              data-testid="button-contact-seller"
             >
-              View Cart
+              <MessageCircle className="h-5 w-5 mr-2" />
+              Contact Seller
             </Button>
           </div>
 
