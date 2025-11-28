@@ -13,7 +13,7 @@ export default function Footer() {
           {/* LEFT COLUMN — Branding + Social */}
           <div className="space-y-8">
             <h2 className="text-3xl font-bold leading-tight">
-              WE MADE IT SO YOU CAN GET RID OF IT 
+              WE MADE IT SO YOU CAN GET RID OF IT
             </h2> {/* REQUIRE GOOD SLOGAN BEFORE LAUNCH */}
 
             <div className="space-y-3">
@@ -40,23 +40,36 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="font-semibold text-base uppercase tracking-wide">Sitemap</h3>
             <div className="flex flex-col space-y-2">
-              <Link href="/explore">
-                <Button variant="ghost" className="justify-start p-0 h-auto">
-                  Browse Items
-                </Button>
-              </Link>
-
-              <Link href="/sell">
-                <Button variant="ghost" className="justify-start p-0 h-auto">
-                  Sell an Item
-                </Button>
-              </Link>
-
               <Link href="/account">
                 <Button variant="ghost" className="justify-start p-0 h-auto">
                   Your Account
                 </Button>
               </Link>
+
+              <Link href="/explore">
+                <Button variant="ghost" className="justify-start p-0 h-auto">
+                  Marketplace
+                </Button>
+              </Link>
+
+              <Link href="/sell">
+                <Button variant="ghost" className="justify-start p-0 h-auto">
+                  List an Item
+                </Button>
+              </Link>
+
+              <Link href="/locoloco">
+                <Button variant="ghost" className="justify-start p-0 h-auto">
+                  LocoLoco
+                </Button>
+              </Link>
+
+              <Link href="/design-room">
+                <Button variant="ghost" className="justify-start p-0 h-auto">
+                  Build Your Room
+                </Button>
+              </Link>
+
             </div>
           </div>
 
