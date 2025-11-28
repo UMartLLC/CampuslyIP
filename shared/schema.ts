@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, decimal, timestamp, index, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, decimal, timestamp, index, jsonb, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -38,6 +38,7 @@ export const items = pgTable("items", {
   subcategory: text("subcategory"),
   condition: text("condition").notNull(), // "new", "like-new", "good", "fair"
   images: text("images").array().default(sql`'{}'::text[]`),
+  quantity: integer("quantity").notNull().default(1), // Available stock
   sellerId: varchar("seller_id").notNull().references(() => users.id),
   status: text("status").notNull().default("available"), // "available", "sold", "pending"
   createdAt: timestamp("created_at").defaultNow(),
@@ -48,6 +49,7 @@ export const cartItems = pgTable("cart_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
   itemId: varchar("item_id").notNull().references(() => items.id),
+  quantity: integer("quantity").notNull().default(1), // Quantity in cart
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -76,12 +78,17 @@ export const insertItemSchema = createInsertSchema(items).pick({
   subcategory: true,
   condition: true,
   images: true,
+  quantity: true,
 }).extend({
   subcategory: z.string().min(1, "Subcategory is required"),
+  quantity: z.number().int().min(1, "Quantity must be at least 1").default(1),
 });
 
 export const insertCartItemSchema = createInsertSchema(cartItems).pick({
   itemId: true,
+  quantity: true,
+}).extend({
+  quantity: z.number().int().min(1, "Quantity must be at least 1").default(1),
 });
 
 export const insertFavoriteSchema = createInsertSchema(favorites).pick({
