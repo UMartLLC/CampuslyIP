@@ -21,7 +21,8 @@ export interface IStorage {
   repostItem(id: string): Promise<Item | undefined>;
   
   getCartItems(userId: string): Promise<CartItemWithDetails[]>;
-  addToCart(userId: string, itemId: string): Promise<CartItem>;
+  addToCart(userId: string, itemId: string, quantity?: number): Promise<CartItem>;
+  updateCartQuantity(userId: string, itemId: string, quantity: number): Promise<CartItem | undefined>;
   removeFromCart(userId: string, itemId: string): Promise<boolean>;
   clearCart(userId: string): Promise<void>;
   
@@ -71,6 +72,7 @@ export class MemStorage implements IStorage {
         subcategory: "Mathematics",
         condition: "like-new",
         images: [],
+        quantity: 1,
         sellerId: "temp-user-id",
         status: "available",
         createdAt: new Date(),
@@ -85,6 +87,7 @@ export class MemStorage implements IStorage {
         subcategory: "Accessories",
         condition: "good",
         images: [],
+        quantity: 3,
         sellerId: "temp-user-id",
         status: "available",
         createdAt: new Date(),
@@ -99,6 +102,7 @@ export class MemStorage implements IStorage {
         subcategory: "Lighting",
         condition: "good",
         images: [],
+        quantity: 5,
         sellerId: "temp-user-id",
         status: "available",
         createdAt: new Date(),
@@ -194,6 +198,7 @@ export class MemStorage implements IStorage {
       ...insertItem,
       images: insertItem.images || null,
       subcategory: insertItem.subcategory || null,
+      quantity: insertItem.quantity || 1,
       sellerId,
       status: "available",
       createdAt: new Date(),
@@ -255,22 +260,38 @@ export class MemStorage implements IStorage {
     return result;
   }
 
-  async addToCart(userId: string, itemId: string): Promise<CartItem> {
+  async addToCart(userId: string, itemId: string, quantity: number = 1): Promise<CartItem> {
     // Check if already in cart
     const existing = Array.from(this.cartItems.values()).find(
       ci => ci.userId === userId && ci.itemId === itemId
     );
     
-    if (existing) return existing;
+    if (existing) {
+      // Update quantity instead of adding new
+      existing.quantity = Math.min(existing.quantity + quantity, 99);
+      return existing;
+    }
 
     const cartItem: CartItem = {
       id: this.generateId(),
       userId,
       itemId,
+      quantity,
       createdAt: new Date(),
     };
     this.cartItems.set(cartItem.id, cartItem);
     return cartItem;
+  }
+
+  async updateCartQuantity(userId: string, itemId: string, quantity: number): Promise<CartItem | undefined> {
+    const existing = Array.from(this.cartItems.values()).find(
+      ci => ci.userId === userId && ci.itemId === itemId
+    );
+    
+    if (!existing) return undefined;
+    
+    existing.quantity = quantity;
+    return existing;
   }
 
   async removeFromCart(userId: string, itemId: string): Promise<boolean> {

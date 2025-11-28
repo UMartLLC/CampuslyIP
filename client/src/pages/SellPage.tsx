@@ -23,6 +23,7 @@ const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
   price: z.string().min(0.01, "Price must be greater than 0"),
+  quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
   category: z.string().min(1, "Category is required"),
   subcategory: z.string().min(1, "Subcategory is required"),
   condition: z.string().min(1, "Condition is required"),
@@ -41,6 +42,7 @@ export default function SellPage() {
       title: "",
       description: "",
       price: "",
+      quantity: 1,
       category: "",
       subcategory: "",
       condition: "",
@@ -219,6 +221,7 @@ export default function SellPage() {
     formData.append('title', data.title);
     formData.append('description', data.description);
     formData.append('price', data.price);
+    formData.append('quantity', data.quantity.toString());
     formData.append('category', data.category);
     if (data.subcategory) {
       formData.append('subcategory', data.subcategory);
@@ -418,19 +421,35 @@ export default function SellPage() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price / Starting Bid ($)</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} data-testid="input-price" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price ($)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} data-testid="input-price" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quantity Available</FormLabel>
+                      <FormControl>
+                        <Input type="number" min="1" step="1" placeholder="1" {...field} data-testid="input-quantity" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}

@@ -81,7 +81,7 @@ export const insertItemSchema = createInsertSchema(items).pick({
   quantity: true,
 }).extend({
   subcategory: z.string().min(1, "Subcategory is required"),
-  quantity: z.number().int().min(1, "Quantity must be at least 1").default(1),
+  quantity: z.coerce.number().int().min(1, "Quantity must be at least 1").default(1),
 });
 
 export const insertCartItemSchema = createInsertSchema(cartItems).pick({

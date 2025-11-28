@@ -174,6 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const itemData = {
         ...req.body,
         price: req.body.price.toString(),
+        quantity: req.body.quantity || 1,
         images: imageUrls.length > 0 ? imageUrls : undefined,
       };
 
@@ -323,15 +324,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // AUTHENTICATION DISABLED - use temporary user
       const userId = TEMP_USER_ID;
-      const { itemId } = req.body;
+      const { itemId, quantity = 1 } = req.body;
       if (!itemId) {
         return res.status(400).json({ message: "Item ID is required" });
       }
-      const cartItem = await storage.addToCart(userId, itemId);
+      
+      // Validate quantity against item's available stock
+      const item = await storage.getItem(itemId);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      const maxQuantity = item.quantity || 1;
+      const safeQuantity = Math.min(Math.max(1, quantity), maxQuantity);
+      
+      const cartItem = await storage.addToCart(userId, itemId, safeQuantity);
       res.json(cartItem);
     } catch (error) {
       console.error("Error adding to cart:", error);
       res.status(500).json({ message: "Failed to add to cart" });
+    }
+  });
+
+  app.patch("/api/cart/:itemId", async (req, res) => {
+    try {
+      // AUTHENTICATION DISABLED - use temporary user
+      const userId = TEMP_USER_ID;
+      const { quantity } = req.body;
+      
+      if (typeof quantity !== 'number' || quantity < 1) {
+        return res.status(400).json({ message: "Valid quantity is required" });
+      }
+      
+      // Validate quantity against item's available stock
+      const item = await storage.getItem(req.params.itemId);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      const maxQuantity = item.quantity || 1;
+      const safeQuantity = Math.min(quantity, maxQuantity);
+      
+      const cartItem = await storage.updateCartQuantity(userId, req.params.itemId, safeQuantity);
+      if (!cartItem) {
+        return res.status(404).json({ message: "Cart item not found" });
+      }
+      res.json(cartItem);
+    } catch (error) {
+      console.error("Error updating cart quantity:", error);
+      res.status(500).json({ message: "Failed to update cart quantity" });
     }
   });
 

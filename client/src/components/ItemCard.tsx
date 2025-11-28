@@ -163,19 +163,29 @@ export default function ItemCard({ item, onViewDetails, onContact, isFavorited =
       </div>
 
       <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors" data-testid={`text-title-${item.id}`}>
-            {item.title}
-          </h3>
-          <span className="font-bold text-xl text-primary ml-2" data-testid={`text-price-${item.id}`}>
-            ${item.price}
+        {/* Title - fixed height for consistency */}
+        <h3 className="font-semibold text-base line-clamp-2 h-12 group-hover:text-primary transition-colors mb-2" data-testid={`text-title-${item.id}`}>
+          {item.title}
+        </h3>
+        
+        {/* Price */}
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-bold text-xl text-primary" data-testid={`text-price-${item.id}`}>
+            ${parseFloat(item.price).toFixed(2)}
           </span>
+          {item.quantity && item.quantity > 1 && (
+            <span className="text-xs text-muted-foreground">
+              {item.quantity} available
+            </span>
+          )}
         </div>
         
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-3" data-testid={`text-description-${item.id}`}>
+        {/* Description - fixed height for consistency */}
+        <p className="text-sm text-muted-foreground line-clamp-2 h-10 mb-3" data-testid={`text-description-${item.id}`}>
           {item.description}
         </p>
 
+        {/* Category Badge */}
         <Badge variant="secondary" data-testid={`badge-category-${item.id}`}>
           {item.category}
         </Badge>
