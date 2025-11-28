@@ -65,6 +65,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // TEMPORARILY DISABLED - Uncomment to re-enable authentication
   // setupAuth(app);
   
+  // Generate placeholder images dynamically using Sharp
+  app.get("/api/placeholder/:width/:height", async (req, res) => {
+    try {
+      const width = Math.min(parseInt(req.params.width) || 300, 1920);
+      const height = Math.min(parseInt(req.params.height) || 300, 1920);
+      
+      // Create a simple gray placeholder image with text
+      const svg = `
+        <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="#e5e7eb"/>
+          <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="16" fill="#9ca3af" text-anchor="middle" dy=".3em">
+            ${width} x ${height}
+          </text>
+        </svg>
+      `;
+      
+      const imageBuffer = await sharp(Buffer.from(svg))
+        .jpeg({ quality: 80 })
+        .toBuffer();
+      
+      res.set({
+        'Content-Type': 'image/jpeg',
+        'Cache-Control': 'public, max-age=86400',
+      });
+      res.send(imageBuffer);
+    } catch (error) {
+      console.error('Error generating placeholder:', error);
+      res.status(500).json({ error: 'Failed to generate placeholder' });
+    }
+  });
+  
   // Serve public objects from object storage
   // Referenced from blueprint:javascript_object_storage
   app.get("/public-objects/:filePath(*)", async (req, res) => {
