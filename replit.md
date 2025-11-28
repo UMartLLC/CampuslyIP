@@ -2,22 +2,7 @@
 
 ## Overview
 
-CampusMarket (also referred to as UniMart) is a student-focused marketplace platform that enables buying, selling, and trading of items within campus communities. The platform facilitates safe transactions between students for textbooks, electronics, furniture, clothing, and other items. It features integrated messaging, payment processing, and advertising capabilities.
-
-The application is built as a full-stack TypeScript monorepo with a React frontend and Express backend, designed to be student-friendly with community-focused aesthetics inspired by Etsy, Facebook Marketplace, and Venmo.
-
-**Recent Updates (Nov 9, 2024):**
-- Implemented favorites/like feature: users can like items from marketplace, view favorites in Account page
-- Updated user profile dropdown menu to include all account sections (Dashboard, My Market, Items History, Favorites, My Bids, My Purchases, My LocoLoco, Report a Concern, Legal)
-- Fixed cart page navigation: "Browse Items" and "Continue Shopping" now route to marketplace (/items) instead of home page
-- Added item counts to category/subcategory filters: displays number of available items next to each filter option
-- Optimized filter count performance: using useMemo with Map for O(n) preprocessing and O(1) lookups
-- Consolidated duplicate sell pages: removed legacy `/add-item` route and `AddItemPage`
-- All "Sell Items" buttons now route to the unified `/sell` page (SellPage)
-- Cleaned up unused `AddItemForm` component
-- Fixed multi-image upload: all selected images now display correctly (not just the last one)
-- Removed filters sidebar and button from marketplace for cleaner UI
-- Enhanced image carousel navigation: removed dots, made arrows always visible with better styling
+CampusMarket (UniMart) is a student-focused marketplace platform designed for buying, selling, and trading items within university communities. It facilitates secure transactions for items like textbooks, electronics, furniture, and clothing, featuring integrated messaging, payment processing, and advertising capabilities. The platform aims to provide a student-friendly experience with community-focused aesthetics inspired by popular marketplace and payment applications. It is built as a full-stack TypeScript monorepo with a React frontend and Express backend. Key features include quantity management for items, clickable item cards linking to detail pages, and a favorites system.
 
 ## User Preferences
 
@@ -29,26 +14,26 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
 ### Frontend Architecture
 
 **Framework & Build System:**
-- React 18 with TypeScript for type safety
-- Vite as the build tool and dev server with HMR support
-- Wouter for lightweight client-side routing
-- React Query (@tanstack/react-query) for server state management
+- React 18 with TypeScript
+- Vite for building and development
+- Wouter for routing
+- React Query for server state management
 
 **UI Component System:**
-- Shadcn UI component library with Radix UI primitives
-- Tailwind CSS for styling with custom design system
-- Custom theme system supporting light/dark modes via ThemeProvider context
-- Design inspired by Etsy, Facebook Marketplace, and Venmo aesthetics
+- Shadcn UI with Radix UI primitives
+- Tailwind CSS for styling with a custom design system
+- ThemeProvider context for light/dark modes
+- Design inspiration from Etsy, Facebook Marketplace, and Venmo
 
 **Design System:**
-- Primary colors: Deep blue (light mode: `220 85% 25%`) and light blue-gray (dark mode: `220 40% 85%`)
-- Typography: Inter (primary) and Poppins (headings) from Google Fonts
-- Spacing system using Tailwind units (2, 4, 6, 8)
-- Custom CSS variables for theme consistency with HSL color format
+- Primary colors: Deep blue (light mode) and light blue-gray (dark mode)
+- Typography: Inter (primary) and Poppins (headings)
+- Tailwind-based spacing system
+- Custom CSS variables for theme consistency
 
 **State Management:**
-- React Query for async state and API data fetching
-- React Hook Form with Zod validation for form handling
+- React Query for async state and API data
+- React Hook Form with Zod for form handling
 - Context API for theme management
 - Local component state with React hooks
 
@@ -56,223 +41,130 @@ Privacy settings: Seller names remain anonymous ("Anonymous Seller") in marketpl
 
 **Server Framework:**
 - Express.js with TypeScript
-- RESTful API design pattern
-- Session-based authentication (connect-pg-simple for session storage)
-- Multer for file upload handling
+- RESTful API design
+- Session-based authentication with `connect-pg-simple`
+- Multer for file uploads
 
 **Database Layer:**
-- PostgreSQL as the primary database (Neon serverless)
-- Drizzle ORM for type-safe database operations
-- DatabaseStorage implementation replacing in-memory storage
-- Neon serverless PostgreSQL driver (@neondatabase/serverless)
-- Schema-first design with automated Drizzle migrations (db:push)
+- PostgreSQL (Neon serverless)
+- Drizzle ORM for type-safe operations
+- DatabaseStorage implementation
+- Schema-first design with automated Drizzle migrations
+- UUID primary keys and foreign key constraints
+- Soft delete mechanism for items (`deletedAt` field)
 
 **Database Schema:**
-- **Users table**: Authentication and profile data (id, username, email, password, firstName, lastName, profileImageUrl)
-- **Items table**: Marketplace listings with seller references, pricing, images, categories, conditions, status tracking, and soft-delete support (deletedAt field)
-- **Cart Items table**: Shopping cart persistence (id, userId, itemId, createdAt) with duplicate prevention
-- **Favorites table**: User's liked items (id, userId, itemId, createdAt) - automatically filters out sold/deleted items
-- UUID primary keys with PostgreSQL's `gen_random_uuid()`
-- Relational integrity via foreign key constraints
-- Soft delete implementation for items (deletedAt timestamp instead of hard delete)
-- PublicUser type excludes password field for API responses
-- ItemWithSeller type joins items with sanitized seller data
-- CartItemWithDetails type joins cart items with full item and seller data
-- FavoriteWithDetails type joins favorites with full item and seller data
-
-**Data Persistence:**
-- All items and users stored in PostgreSQL database
-- Default seeded user (temp-user-id) for testing
-- Seed script available at server/seed.ts
+- **Users**: Authentication and profile data.
+- **Items**: Marketplace listings including seller references, pricing, images, categories, conditions, and status.
+- **Cart Items**: Persistent shopping cart data.
+- **Favorites**: User's liked items.
+- Types like `PublicUser`, `ItemWithSeller`, `CartItemWithDetails`, `FavoriteWithDetails` for structured API responses.
 
 **API Structure:**
-- `/api/items` - Item CRUD operations with filtering support (supports ?sellerId query parameter for My Market, ?includeDeleted=true for Items History)
-- `/api/items` POST - Authenticated item creation with image upload via multipart/form-data
-- `/api/items/:id` DELETE - Soft-delete item (sets deletedAt timestamp)
-- `/api/items/:id/repost` POST - Restore deleted item (clears deletedAt, sets status to 'available')
-- `/api/cart` GET - Retrieve user's cart items with full item and seller details
-- `/api/cart` POST - Add item to cart (prevents duplicates)
-- `/api/cart/:itemId` DELETE - Remove specific item from cart
-- `/api/cart` DELETE - Clear entire cart
-- `/api/favorites` GET - Retrieve user's favorited items (automatically excludes sold/deleted items)
-- `/api/favorites` POST - Add item to favorites (with Zod validation, prevents duplicates)
-- `/api/favorites/:itemId` DELETE - Remove item from favorites
-- `/public-objects/:filePath` - Public image/file retrieval from object storage
-- All authenticated endpoints include session cookies via TanStack Query default fetcher
-- Standardized error handling middleware
-- Request/response logging for API endpoints
+- Comprehensive CRUD operations for `/api/items`, `/api/cart`, and `/api/favorites`.
+- `/public-objects/:filePath` for public image retrieval.
+- Authenticated endpoints use session cookies.
+- Standardized error handling and request/response logging.
 
 ### File Storage
 
 **Object Storage (Replit/Google Cloud Storage):**
-- Google Cloud Storage SDK (@google-cloud/storage)
-- Replit sidecar endpoint authentication for GCS
-- Public/private path separation for access control
-- ObjectStorageService in server/objectStorage.ts for all storage operations
-- Image upload with multipart form data
-- Streaming file downloads for efficient delivery
+- Google Cloud Storage SDK via Replit sidecar.
+- Public/private path separation.
+- `ObjectStorageService` for all storage operations.
+- Multipart form data for image uploads.
 
 **Image Handling:**
-- Multiple image support per item listing
-- Array-based image storage in database
-- Public object URLs served via /public-objects/:filePath route
+- Multiple images per item listing (up to 5).
+- Image carousel display.
+- Image reordering, addition, and removal during listing creation/editing.
 
 ### Payment Integration
 
 **Supported Payment Methods:**
-- Stripe integration (@stripe/stripe-js, @stripe/react-stripe-js)
-- Apple Pay support
-- Venmo integration
-- Credit/debit card processing
-- Transaction fee structure (2.9% for cards, 0% for Apple Pay/Venmo)
+- Stripe, Apple Pay, Venmo, credit/debit cards.
+- Transaction fee structure (2.9% for cards, 0% for Apple Pay/Venmo).
 
 **Payment Flow:**
-- Modal-based checkout experience
-- Payment method selection UI
-- Secure payment processing via Stripe
-- Payment completion callbacks
+- Modal-based checkout.
+- Payment method selection UI.
+- Secure processing via Stripe.
 
 ### Authentication & Security
 
 **Authentication Strategy:**
-- Session-based authentication with PostgreSQL session store (connect-pg-simple)
-- Password hashing using Node.js crypto scrypt with salt
-- Passport.js local strategy for username/password authentication
-- User profile management with avatar support
-- Credential-based login and registration system
+- Session-based authentication with PostgreSQL session store.
+- Password hashing using Node.js crypto scrypt.
+- Passport.js local strategy.
+- Credential-based login and registration.
 
 **Security Measures:**
-- CORS configuration for API security
-- Input validation using Zod schemas
-- SQL injection protection via Drizzle ORM parameterized queries
-- Environment variable management for sensitive credentials
-- Password exclusion from API responses (PublicUser type)
-- Sanitized seller data in item listings
+- CORS configuration.
+- Zod schema validation.
+- SQL injection protection via Drizzle ORM.
+- Environment variable management.
+- Password exclusion from API responses.
 
 ### Key Features Architecture
 
 **Marketplace Features:**
-- Item listing with multi-step form
-- Multi-level category/subcategory system with accordion-style filtering UI
-  - Categories: Electronics, Textbooks, Furniture, Clothing, School Supplies, Sports & Recreation, Other
-  - Each category has specialized subcategories (e.g., Electronics → Laptops, Phones, Tablets)
-  - Centralized configuration in shared/categories.ts ensures consistency
-  - Subcategory field added to database schema for granular filtering
-- Accordion-style filtering interface
-  - Click category to expand and show subcategory checkboxes
-  - Expanding a category immediately filters to show all items in that category
-  - Selecting subcategories further narrows results within the category
-  - Visual feedback with accent colors for active filters
-  - Item counts displayed next to each category/subcategory showing available items
-  - Performance-optimized count calculations using useMemo and Map data structures
-  - Empty state message when no items match with clear filters button
-- Advanced filtering (category, subcategory, condition)
-- **Site-wide search functionality**: Search bar in header navigates to marketplace with results filtered by query
-- Sorting options (price, date, relevance)
-- Item condition classification (new, like-new, good, fair)
-- Status tracking (available, sold, pending)
-- **Favorites/Like functionality**:
-  - Heart button on each item card in marketplace
-  - Optimistic UI updates with proper rollback on error
-  - Liked items appear in Account → Favorites section
-  - Sold/deleted items automatically removed from favorites
-  - React Query cache invalidation keeps favorites in sync across views
-- **Image management with carousel navigation**:
-  - Up to 5 images per listing
-  - Carousel display on marketplace cards (arrows + dots when multiple images)
-  - Image reordering with up/down arrows during creation/editing
-  - First image = primary thumbnail with "Primary" badge
-  - Add, remove, and reorder images freely
-  - **Edit existing listings**: Full image management on posted items (reorder, add new, remove existing)
-  - Unified reordering: new and existing images can be interleaved in any order
-- **Privacy-first design**: Seller names remain anonymous in marketplace and cart views until transaction completion
-- Shopping cart functionality with persistent storage
-  - Add items to cart from marketplace
-  - Cart icon in header with item count badge
-  - Full cart page with item management
-  - Remove individual items or clear entire cart
-  - Duplicate prevention (same item can't be added twice)
-  - Order summary with total calculation
-  - "Browse Items" and "Continue Shopping" buttons route to marketplace
-  - Anonymous seller display for user privacy
+- Multi-step item listing form.
+- Multi-level category/subcategory system with accordion-style filtering UI, item counts, and empty state handling.
+- Site-wide search functionality.
+- Sorting options (price, date, relevance).
+- Item condition classification and status tracking.
+- Favorites/Like functionality with optimistic UI updates.
+- Image management with carousel navigation and editing capabilities.
+- Anonymous seller display.
+- Shopping cart with persistent storage, item management, duplicate prevention, and order summary.
 
 **Messaging System:**
-- Messaging interface between buyers and sellers
-- WhatsApp/iMessage-inspired UI design
-- Pinned support conversations
-- Message sending with Enter key support
-- Built-in calendar for meetup scheduling
-- Conversation list with message preview
-- Real-time message display in chat area
+- Buyer-seller messaging interface (WhatsApp/iMessage-inspired).
+- Pinned support conversations.
+- Meetup scheduling with calendar.
 
 **Advertising Platform (LocoLoco):**
-- Advertisement management dashboard
-- Event, roommate, and item promotion
-- Tiered advertising (premium/standard)
-- Advertisement creation and tracking
+- Dashboard for advertisement management.
+- Promotion of events, roommates, and items.
+- Tiered advertising options.
 
 **User Account Management:**
-- Dashboard with profile settings
-- **User dropdown menu**: Click person icon in header to access all account sections
-  - Includes: Dashboard, My Market, Items History, Favorites, My Bids, My Purchases, My LocoLoco, Report a Concern, Legal
-  - Each link navigates to `/account?tab=<section>` for direct access
-  - Icons match sidebar menu for consistency
-- "My Market" - seller's active listings with full management capabilities
-  - Shows only non-deleted, available items
-  - Always-visible "Sell Item" button for adding new listings
-  - Delete functionality with confirmation dialog (soft-deletes items)
-  - Empty state with call-to-action when no items listed
-- "Items History" - comprehensive view of all items ever posted
-  - Categorized by status: Available, Sold, Deleted
-  - Shows item counts for each category
-  - Deleted items displayed with grayscale images and reduced opacity
-  - Repost functionality to restore deleted items back to marketplace
-  - Includes all items regardless of deletedAt status
-- "Favorites" - user's liked items
-  - Grid display of favorited items using ItemCard component
-  - Automatically excludes sold/deleted items (filtered in backend)
-  - Empty state with "Browse Marketplace" call-to-action
-  - Clicking item navigates to detail page
-  - Heart icons show as filled/active
-- "My Bids" - bid tracking and notifications
-- "My Purchases" - purchase history with sorting
-- Report concern form with admin notification
-- Password reset functionality via username
-- Remember Me checkbox for extended session (30 days)
-- ItemCard component displays seller info using firstName/lastName with username fallback
+- Dashboard with profile settings.
+- Comprehensive user dropdown menu for account sections (Dashboard, My Market, Items History, Favorites, My Bids, My Purchases, My LocoLoco, Report a Concern, Legal).
+- "My Market" for active listings with management tools (soft-delete, repost).
+- "Items History" for all posted items, including deleted ones.
+- "Favorites" display.
+- Password reset functionality.
 
 ## External Dependencies
 
 **Cloud Services:**
-- **Replit Object Storage**: Google Cloud Storage-based file storage via Replit sidecar
-- **Neon**: Serverless PostgreSQL database hosting
-- **Stripe**: Payment processing and checkout
+- **Replit Object Storage**: Google Cloud Storage via Replit sidecar.
+- **Neon**: Serverless PostgreSQL database.
+- **Stripe**: Payment processing.
 
 **Third-Party APIs:**
-- Google Cloud Storage SDK for object storage operations
-- Stripe SDK for payment processing
+- Google Cloud Storage SDK.
+- Stripe SDK.
 
 **UI Libraries:**
-- Radix UI component primitives (dialogs, dropdowns, navigation, etc.)
-- Lucide React for icons
-- React Icons for social media icons
+- Radix UI.
+- Lucide React (icons).
+- React Icons.
 
 **Development Tools:**
-- Drizzle Kit for database migrations
-- ESBuild for server bundling
-- Replit development environment integration
+- Drizzle Kit (migrations).
+- ESBuild (server bundling).
 
 **Asset Management:**
-- Google Fonts (Inter, Poppins)
-- Local asset storage in `/attached_assets`
-- Generated images for hero sections and marketing
+- Google Fonts (Inter, Poppins).
 
 **Form & Validation:**
-- React Hook Form for form state
-- Zod for schema validation
-- @hookform/resolvers for integration
+- React Hook Form.
+- Zod.
+- @hookform/resolvers.
 
 **Utilities:**
-- clsx and tailwind-merge for class name management
-- nanoid for unique ID generation
-- class-variance-authority for variant-based styling
+- clsx and tailwind-merge.
+- nanoid.
+- class-variance-authority.

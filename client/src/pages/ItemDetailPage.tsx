@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,9 @@ import {
   Package,
   Tag,
   User,
-  Calendar
+  Calendar,
+  Minus,
+  Plus
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -54,8 +56,15 @@ export default function ItemDetailPage() {
   const { toast } = useToast();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
+  const [cartQuantity, setCartQuantity] = useState(1);
 
   const itemId = params?.id;
+  
+  // Reset cart quantity when navigating to a different item
+  useEffect(() => {
+    setCartQuantity(1);
+    setCurrentImageIndex(0);
+  }, [itemId]);
 
   const { data: item, isLoading, error } = useQuery<ItemWithSeller>({
     queryKey: ["/api/items", itemId],
@@ -78,24 +87,25 @@ export default function ItemDetailPage() {
   const isFavorited = favorites.some((fav) => fav.itemId === itemId);
 
   const addToCartMutation = useMutation({
-    mutationFn: async (itemToAdd: { id: string; title: string }) => {
+    mutationFn: async (params: { id: string; title: string; quantity: number }) => {
       const response = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ itemId: itemToAdd.id }),
+        body: JSON.stringify({ itemId: params.id, quantity: params.quantity }),
       });
       if (!response.ok) {
         throw new Error("Failed to add to cart");
       }
       return response.json();
     },
-    onSuccess: (_, itemToAdd) => {
+    onSuccess: (_, params) => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
       toast({
         title: "Added to cart",
-        description: `${itemToAdd.title} has been added to your cart.`,
+        description: `${params.quantity} x ${params.title} has been added to your cart.`,
       });
+      setCartQuantity(1); // Reset quantity after adding
     },
     onError: () => {
       toast({
@@ -105,6 +115,13 @@ export default function ItemDetailPage() {
       });
     },
   });
+
+  const maxQuantity = item?.quantity || 1;
+  const isOutOfStock = maxQuantity <= 0;
+
+  const handleQuantityChange = (delta: number) => {
+    setCartQuantity(prev => Math.max(1, Math.min(prev + delta, maxQuantity)));
+  };
 
   const toggleFavoriteMutation = useMutation({
     mutationFn: async (currentLikedState: boolean) => {
@@ -388,16 +405,53 @@ export default function ItemDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Quantity Selector */}
+          {maxQuantity > 1 && item.status === "available" && (
+            <div className="flex items-center gap-4 pt-4">
+              <span className="text-sm font-medium">Quantity:</span>
+              <div className="flex items-center border rounded-md">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-r-none"
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={cartQuantity <= 1}
+                  data-testid="button-decrease-qty"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="px-4 text-lg font-medium min-w-[3rem] text-center" data-testid="text-cart-qty">
+                  {cartQuantity}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-l-none"
+                  onClick={() => handleQuantityChange(1)}
+                  disabled={cartQuantity >= maxQuantity}
+                  data-testid="button-increase-qty"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <span className="text-sm text-muted-foreground">{maxQuantity} available</span>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <Button
               size="lg"
               className="flex-1"
-              onClick={() => addToCartMutation.mutate({ id: item.id, title: item.title })}
-              disabled={addToCartMutation.isPending || item.status !== "available"}
+              onClick={() => {
+                // Clamp quantity to available stock before submitting
+                const safeQuantity = Math.min(cartQuantity, maxQuantity);
+                addToCartMutation.mutate({ id: item.id, title: item.title, quantity: safeQuantity });
+              }}
+              disabled={addToCartMutation.isPending || item.status !== "available" || isOutOfStock}
               data-testid="button-add-to-cart"
             >
               <ShoppingCart className="h-5 w-5 mr-2" />
-              {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
+              {isOutOfStock ? "Out of Stock" : addToCartMutation.isPending ? "Adding..." : `Add${cartQuantity > 1 ? ` (${cartQuantity})` : ''} to Cart`}
             </Button>
             <Button
               size="lg"
