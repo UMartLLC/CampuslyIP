@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Shield, Zap, Heart } from "lucide-react";
 import CampuslyGreen from '@assets/generated_images/CampuslyGreen.png';
@@ -25,9 +27,9 @@ export default function AboutPage() {
       description: "Promote reuse and reduce waste by giving items a second life within your campus community."
     }
   ];
-
+  
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div id="about" className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-4xl font-bold font-heading mb-4">About Campusly</h1>
       <p className="text-lg text-muted-foreground mb-8">
         Your trusted university marketplace for buying, selling, and trading within your campus community
@@ -65,8 +67,8 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold mb-4">
+        <section id="green-initiative" className="mb-12">
+          <h2  className="text-2xl font-semibold mb-4">
             <span className="inline-flex items-center gap-2 align-middle">
               Our Green Initiative
               <img
@@ -91,7 +93,7 @@ export default function AboutPage() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section className="mb-16">
+        <section id="how-it-works" className="mb-16">
           <h2 className="text-4xl font-bold font-heading mb-4">How It Works</h2>
 
           <div className="space-y-12">

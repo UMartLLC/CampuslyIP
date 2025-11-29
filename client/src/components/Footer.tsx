@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { SiInstagram, SiTiktok } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 
+
 export default function Footer() {
   return (
     <footer className="border-t bg-card mt-auto">
@@ -42,6 +43,7 @@ export default function Footer() {
               <nav className="flex flex-col space-y-1.5 text-sm">
                 <Link href="/about" className="hover:underline">About Us</Link>
                 <Link href="/faq" className="hover:underline">FAQ</Link>
+                <Link href="/about#green-initiative" className="hover:underline">Green Initiative</Link>
                 <Link href="/messages?contact=support" className="hover:underline">Contact Us</Link>
               </nav>
             </div>
@@ -64,12 +66,12 @@ export default function Footer() {
                 Follow Us
               </h3>
               <div className="flex gap-3">
-                <a href="https://instagram.com/unimart" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <a href="https://instagram.com/campusly" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <Button variant="outline" size="icon" className="h-8 w-8">
                     <SiInstagram className="h-4 w-4" />
                   </Button>
                 </a>
-                <a href="https://tiktok.com/@unimart" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                <a href="https://tiktok.com/@campusly" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
                   <Button variant="outline" size="icon" className="h-8 w-8">
                     <SiTiktok className="h-4 w-4" />
                   </Button>
@@ -86,7 +88,7 @@ export default function Footer() {
             <div className="w-8 h-8 rounded-full border-2 border-current flex items-center justify-center">
               <span className="text-xs font-bold">U</span>
             </div>
-            <span className="text-sm font-semibold tracking-wide">UniMart</span>
+            <span className="text-sm font-semibold tracking-wide">Campusly</span>
           </div>
 
           {/* CTA Buttons */}
@@ -114,7 +116,6 @@ export default function Footer() {
             <Link href="/account?tab=legal#privacy" className="hover:underline">Privacy Policy</Link>
             <Link href="/account?tab=report" className="hover:underline">Report a Concern</Link>
             <span className="flex items-center gap-1">
-              <span className="inline-block w-4 h-4 rounded-full bg-muted-foreground/20" />
               Your Privacy Choices
             </span>
           </div>
