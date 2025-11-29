@@ -16,15 +16,16 @@ interface ItemsGridProps {
 
 const CATEGORIES = [
   "Electronics",
-  "Textbooks", 
   "Furniture",
+  "Bed & Bath",
   "Clothing",
   "School Supplies",
+  "Books",
   "Sports & Recreation",
   "Other"
 ];
 
-const CONDITIONS = ["new", "like-new", "good", "fair"];
+const CONDITIONS = ["New", "Like-New", "Good", "Fair"];
 
 export default function ItemsGrid({ items, onItemClick, onContactSeller }: ItemsGridProps) {
   const [searchQuery, setSearchQuery] = useState("");

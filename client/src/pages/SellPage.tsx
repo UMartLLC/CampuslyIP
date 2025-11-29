@@ -17,12 +17,12 @@ import { CATEGORY_CONFIG, getAllCategories, getSubcategories } from "@shared/cat
 import heic2any from "heic2any";
 
 const CATEGORIES = getAllCategories();
-const CONDITIONS = ["new", "like-new", "good", "fair"];
+const CONDITIONS = ["New", "Like-New", "Good", "Fair"];
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  price: z.string().min(0.01, "Price must be greater than 0"),
+  price: z.string().min(0.01, "Price must be greater than $0"),
   quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
   category: z.string().min(1, "Category is required"),
   subcategory: z.string().min(1, "Subcategory is required"),
@@ -241,14 +241,14 @@ export default function SellPage() {
       <Card>
         <CardHeader>
           <CardTitle>Sell an Item</CardTitle>
-          <CardDescription>List your item for sale or set a starting bid price</CardDescription>
+          <CardDescription>List your item for sale. Bidding feature is not yet available.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Image Upload */}
               <div className="space-y-4">
-                <Label>Photos (up to 5)</Label>
+                <Label>Photos (up to 5). Click and drag photos to change the order.</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative aspect-square rounded-lg overflow-hidden border group">

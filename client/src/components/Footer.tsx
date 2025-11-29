@@ -28,7 +28,7 @@ export default function Footer() {
               <nav className="flex flex-col space-y-1.5 text-sm">
                 <Link href="/account" className="hover:underline">Your Account</Link>
                 <Link href="/items" className="hover:underline">Marketplace</Link>
-                <Link href="/sell" className="hover:underline">List an Item</Link>
+                <Link href="/sell" className="hover:underline">Sell an Item</Link>
                 <Link href="/locoloco" className="hover:underline">LocoLoco</Link>
                 <Link href="/design-room" className="hover:underline">Build Your Room</Link>
               </nav>

@@ -3,23 +3,28 @@ export const CATEGORY_CONFIG = {
   "Electronics": {
     subcategories: ["Laptops", "Phones", "Tablets", "Electronics Accessories", "Other Electronics"]
   },
-  "Textbooks": {
-    subcategories: ["Physical Books", "Ebooks", "Math & Science", "Humanities", "Business", "Engineering", "Other Subjects"]
-  },
   "Furniture": {
-    subcategories: ["Desks", "Chairs", "Beds", "Storage", "Lighting", "Other Furniture"]
+    subcategories: ["Desks", "Chairs", "Lamps & Lighting", "Storage", "Other Furniture"]
+  },
+  "Bed & Bath": {
+    subcategories: ["Sheets", "Pillows", "Pillow Covers", "Toiletries", "Cleaning, Plunger, and Brushes", "Other Bed & Bath"]
   },
   "Clothing": {
-    subcategories: ["T-shirts", "Hoodies", "Pants", "Shorts", "Shoes", "Clothing Accessories", "Other Clothing"]
+    subcategories: ["Dress and Formal Wear", "T-shirts", "Long Sleeve Shirts", "Polos", "Pants", "Shorts", "Hoodies, Sweaters, and Sweatshirts",
+      "Shoes", "Gym", "Clothing Accessories", "Other Clothing"]
   },
   "School Supplies": {
     subcategories: ["Notebooks", "Pens & Pencils", "Binders", "Calculators", "Art Supplies", "Other Supplies"]
+  },
+  "Books": {
+    subcategories: ["Physical Books", "E-books", "Math & Engineering", "Biology & Chemistry", "Psychology",
+      "Humanities", "Business", "Arts", "Fiction", "Non-Fiction", "Other Subjects"]
   },
   "Sports & Recreation": {
     subcategories: ["Exercise Equipment", "Bikes", "Outdoor Gear", "Sports Gear", "Other Recreation"]
   },
   "Other": {
-    subcategories: ["Home Goods", "Misc Items"]
+    subcategories: ["Home Goods", "Hangers & Hooks", "Photography & Cameras", "Stuffed Animals", "Miscellaneous"]
   }
 } as const;
 

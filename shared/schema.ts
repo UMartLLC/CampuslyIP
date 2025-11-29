@@ -36,11 +36,11 @@ export const items = pgTable("items", {
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   category: text("category").notNull(),
   subcategory: text("subcategory"),
-  condition: text("condition").notNull(), // "new", "like-new", "good", "fair"
+  condition: text("condition").notNull(), // "New", "Like-new", "Good", "Fair"
   images: text("images").array().default(sql`'{}'::text[]`),
   quantity: integer("quantity").notNull().default(1), // Available stock
   sellerId: varchar("seller_id").notNull().references(() => users.id),
-  status: text("status").notNull().default("available"), // "available", "sold", "pending"
+  status: text("status").notNull().default("available"), // "Available", "Sold", "Pending"
   createdAt: timestamp("created_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
 });
