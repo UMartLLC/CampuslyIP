@@ -171,7 +171,7 @@ export default function CartPage() {
               const itemTotal = parseFloat(cartItem.item.price) * quantity;
               
               return (
-                <Link key={cartItem.id} href={`/item/${cartItem.item.id}`}>
+                <Link key={cartItem.id} href={`/items/${cartItem.item.id}`}>
                   <Card className="cursor-pointer hover-elevate transition-all" data-testid={`card-cart-item-${cartItem.item.id}`}>
                     <CardContent className="p-4">
                       <div className="flex gap-4">
