@@ -1,13 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertItemSchema, insertFavoriteSchema } from "@shared/schema";
+import { insertItemSchema, insertFavoriteSchema, type ShippingAddress } from "@shared/schema";
 import { setupAuth } from "./auth";
 import multer from "multer";
 import { ObjectStorageService } from "./objectStorage";
 import sharp from "sharp";
 // @ts-ignore - heic-convert doesn't have TypeScript definitions
 import heicConvert from "heic-convert";
+import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -447,6 +448,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error removing favorite:", error);
       res.status(500).json({ message: "Failed to remove favorite" });
+    }
+  });
+
+  // Stripe checkout endpoints
+  // Referenced from blueprint:stripe
+  app.get("/api/stripe/publishable-key", async (req, res) => {
+    try {
+      const publishableKey = await getStripePublishableKey();
+      res.json({ publishableKey });
+    } catch (error) {
+      console.error("Error getting Stripe publishable key:", error);
+      res.status(500).json({ message: "Failed to get Stripe configuration" });
+    }
+  });
+
+  app.post("/api/checkout/create-payment-intent", async (req, res) => {
+    // AUTHENTICATION DISABLED - use temporary user
+    const userId = TEMP_USER_ID;
+    
+    try {
+      const { shippingAddress } = req.body as { shippingAddress: ShippingAddress };
+      
+      // Get cart items
+      const cartItems = await storage.getCartItems(userId);
+      
+      if (cartItems.length === 0) {
+        return res.status(400).json({ message: "Cart is empty" });
+      }
+      
+      // Validate stock availability
+      for (const cartItem of cartItems) {
+        if (cartItem.quantity > cartItem.item.quantity) {
+          return res.status(400).json({ 
+            message: `Not enough stock for ${cartItem.item.title}. Available: ${cartItem.item.quantity}` 
+          });
+        }
+      }
+      
+      // Calculate total
+      const totalAmount = cartItems.reduce((sum, cartItem) => {
+        return sum + (parseFloat(cartItem.item.price) * cartItem.quantity);
+      }, 0);
+      
+      // Create order
+      const order = await storage.createOrder(
+        userId, 
+        totalAmount.toFixed(2), 
+        shippingAddress
+      );
+      
+      // Add order items
+      for (const cartItem of cartItems) {
+        await storage.addOrderItem(
+          order.id,
+          cartItem.itemId,
+          cartItem.quantity,
+          cartItem.item.price
+        );
+      }
+      
+      // Create Stripe payment intent
+      const stripe = await getUncachableStripeClient();
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(totalAmount * 100), // Convert to cents
+        currency: 'usd',
+        metadata: {
+          orderId: order.id,
+          userId: userId,
+        },
+      });
+      
+      // Update order with payment intent ID
+      await storage.updateOrderStatus(order.id, 'pending', paymentIntent.id);
+      
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        orderId: order.id,
+        totalAmount: totalAmount.toFixed(2),
+      });
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+
+  app.post("/api/checkout/complete", async (req, res) => {
+    // AUTHENTICATION DISABLED - use temporary user
+    const userId = TEMP_USER_ID;
+    
+    try {
+      const { orderId, paymentIntentId } = req.body;
+      
+      // Get cart items before clearing
+      const cartItems = await storage.getCartItems(userId);
+      
+      // Update item quantities (subtract purchased amounts)
+      for (const cartItem of cartItems) {
+        await storage.updateItemQuantity(cartItem.itemId, -cartItem.quantity);
+      }
+      
+      // Update order status
+      await storage.updateOrderStatus(orderId, 'completed', paymentIntentId);
+      
+      // Clear cart
+      await storage.clearCart(userId);
+      
+      res.json({ success: true, message: "Order completed successfully" });
+    } catch (error) {
+      console.error("Error completing checkout:", error);
+      res.status(500).json({ message: "Failed to complete checkout" });
     }
   });
 

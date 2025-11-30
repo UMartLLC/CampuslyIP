@@ -1,5 +1,5 @@
 // Referenced from blueprint:javascript_auth_all_persistance
-import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, type CartItem, type CartItemWithDetails, type Favorite, type FavoriteWithDetails } from "@shared/schema";
+import { type User, type InsertUser, type Item, type InsertItem, type ItemWithSeller, type PublicUser, type CartItem, type CartItemWithDetails, type Favorite, type FavoriteWithDetails, type Order, type OrderItem, type ShippingAddress } from "@shared/schema";
 import session from "express-session";
 import MemoryStore from "memorystore";
 
@@ -31,6 +31,11 @@ export interface IStorage {
   removeFavorite(userId: string, itemId: string): Promise<boolean>;
   isFavorite(userId: string, itemId: string): Promise<boolean>;
   
+  createOrder(userId: string, totalAmount: string, shippingAddress: ShippingAddress): Promise<Order>;
+  addOrderItem(orderId: string, itemId: string, quantity: number, priceAtPurchase: string): Promise<OrderItem>;
+  updateOrderStatus(orderId: string, status: string, paymentIntentId?: string): Promise<Order | undefined>;
+  updateItemQuantity(itemId: string, quantityChange: number): Promise<Item | undefined>;
+  
   sessionStore: session.Store;
 }
 
@@ -41,6 +46,8 @@ export class MemStorage implements IStorage {
   private items: Map<string, Item> = new Map();
   private cartItems: Map<string, CartItem> = new Map();
   private favorites: Map<string, Favorite> = new Map();
+  private orders: Map<string, Order> = new Map();
+  private orderItems: Map<string, OrderItem> = new Map();
 
   constructor() {
     this.sessionStore = new SessionStore({
@@ -379,6 +386,58 @@ export class MemStorage implements IStorage {
     return allFavorites.some(
       f => f.userId === userId && f.itemId === itemId
     );
+  }
+
+  async createOrder(userId: string, totalAmount: string, shippingAddress: ShippingAddress): Promise<Order> {
+    const order: Order = {
+      id: this.generateId(),
+      userId,
+      stripePaymentIntentId: null,
+      status: 'pending',
+      totalAmount,
+      shippingAddress,
+      createdAt: new Date(),
+    };
+    this.orders.set(order.id, order);
+    return order;
+  }
+
+  async addOrderItem(orderId: string, itemId: string, quantity: number, priceAtPurchase: string): Promise<OrderItem> {
+    const orderItem: OrderItem = {
+      id: this.generateId(),
+      orderId,
+      itemId,
+      quantity,
+      priceAtPurchase,
+      createdAt: new Date(),
+    };
+    this.orderItems.set(orderItem.id, orderItem);
+    return orderItem;
+  }
+
+  async updateOrderStatus(orderId: string, status: string, paymentIntentId?: string): Promise<Order | undefined> {
+    const order = this.orders.get(orderId);
+    if (!order) return undefined;
+    
+    order.status = status;
+    if (paymentIntentId) {
+      order.stripePaymentIntentId = paymentIntentId;
+    }
+    return order;
+  }
+
+  async updateItemQuantity(itemId: string, quantityChange: number): Promise<Item | undefined> {
+    const item = this.items.get(itemId);
+    if (!item) return undefined;
+    
+    const newQuantity = item.quantity + quantityChange;
+    item.quantity = Math.max(0, newQuantity);
+    
+    if (item.quantity === 0) {
+      item.status = 'sold';
+    }
+    
+    return item;
   }
 }
 

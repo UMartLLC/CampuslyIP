@@ -60,6 +60,25 @@ export const favorites = pgTable("favorites", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const orders = pgTable("orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
+  status: text("status").notNull().default("pending"), // "pending", "completed", "cancelled"
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  shippingAddress: jsonb("shipping_address"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const orderItems = pgTable("order_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").notNull().references(() => orders.id),
+  itemId: varchar("item_id").notNull().references(() => items.id),
+  quantity: integer("quantity").notNull(),
+  priceAtPurchase: decimal("price_at_purchase", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Schema for inserting new user (registration)
 // Referenced from blueprint:javascript_auth_all_persistance
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -107,3 +126,15 @@ export type CartItemWithDetails = CartItem & { item: ItemWithSeller };
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type Favorite = typeof favorites.$inferSelect;
 export type FavoriteWithDetails = Favorite & { item: ItemWithSeller };
+
+export type Order = typeof orders.$inferSelect;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type ShippingAddress = {
+  fullName: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+};
