@@ -8,7 +8,7 @@ import { ObjectStorageService } from "./objectStorage";
 import sharp from "sharp";
 // @ts-ignore - heic-convert doesn't have TypeScript definitions
 import heicConvert from "heic-convert";
-import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
+import { getStripeClient, getStripePublishableKey } from "./stripeClient";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -452,14 +452,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stripe checkout endpoints
-  // Referenced from blueprint:stripe
   app.get("/api/stripe/publishable-key", async (req, res) => {
     try {
-      const publishableKey = await getStripePublishableKey();
+      const publishableKey = getStripePublishableKey();
       res.json({ publishableKey });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting Stripe publishable key:", error);
-      res.status(500).json({ message: "Failed to get Stripe configuration" });
+      res.status(500).json({ 
+        message: "Stripe is not configured. Please set STRIPE_SECRET_KEY and VITE_STRIPE_PUBLIC_KEY environment variables.",
+        error: error.message 
+      });
     }
   });
 
@@ -509,7 +511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create Stripe payment intent
-      const stripe = await getUncachableStripeClient();
+      const stripe = getStripeClient();
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(totalAmount * 100), // Convert to cents
         currency: 'usd',

@@ -25,6 +25,7 @@ import FAQPage from "@/pages/FAQPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import AboutPage from "@/pages/AboutPage";
 import ItemDetailPage from "@/pages/ItemDetailPage";
+import CheckoutPage from "@/pages/CheckoutPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/account" component={AccountPage} />
       <Route path="/messages" component={MessagesPage} />
       <Route path="/cart" component={CartPage} />
+      <Route path="/checkout" component={CheckoutPage} />
       <Route path="/sell" component={SellPage} />
       <Route path="/locoloco" component={LocoLocoPage} />
       <Route path="/shop-by-category" component={ShopByCategoryPage} />

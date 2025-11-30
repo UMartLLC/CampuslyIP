@@ -317,7 +317,12 @@ export default function CartPage() {
                     </div>
                   </div>
                 </div>
-                <Button className="w-full" size="lg" data-testid="button-checkout">
+                <Button 
+                  className="w-full" 
+                  size="lg" 
+                  onClick={() => setLocation('/checkout')}
+                  data-testid="button-checkout"
+                >
                   Proceed to Checkout
                 </Button>
                 <Link href="/items">

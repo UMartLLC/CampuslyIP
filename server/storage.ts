@@ -431,8 +431,15 @@ export class MemStorage implements IStorage {
     if (!item) return undefined;
     
     const newQuantity = item.quantity + quantityChange;
-    item.quantity = Math.max(0, newQuantity);
     
+    // Prevent negative inventory
+    if (newQuantity < 0) {
+      throw new Error(`Insufficient inventory for item ${itemId}. Available: ${item.quantity}, Requested: ${Math.abs(quantityChange)}`);
+    }
+    
+    item.quantity = newQuantity;
+    
+    // Mark as sold if quantity reaches zero
     if (item.quantity === 0) {
       item.status = 'sold';
     }
