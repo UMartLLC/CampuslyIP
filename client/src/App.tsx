@@ -7,47 +7,36 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider, useTheme } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/use-auth";
-// import { ProtectedRoute } from "@/lib/protected-route";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-// import AuthPage from "@/pages/AuthPage";
 import Welcome from "@/pages/Welcome";
-import ItemsPage from "@/pages/ItemsPage";
-import AccountPage from "@/pages/AccountPage";
-import MessagesPage from "@/pages/MessagesPage";
-import CartPage from "@/pages/CartPage";
-import SellPage from "@/pages/SellPage";
-import LocoLocoPage from "@/pages/LocoLocoPage";
-import ShopByCategoryPage from "@/pages/ShopByCategoryPage";
-import DesignRoomPage from "@/pages/DesignRoomPage";
-import TermsPage from "@/pages/TermsPage";
-import FAQPage from "@/pages/FAQPage";
-import PrivacyPage from "@/pages/PrivacyPage";
 import AboutPage from "@/pages/AboutPage";
-import ItemDetailPage from "@/pages/ItemDetailPage";
-import CheckoutPage from "@/pages/CheckoutPage";
+import ComingSoonPage from "@/pages/ComingSoonPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
-      {/* Authentication temporarily disabled */}
-      {/* <Route path="/auth" component={AuthPage} /> */}
       <Route path="/" component={Welcome} />
-      <Route path="/items" component={ItemsPage} />
-      <Route path="/items/:id" component={ItemDetailPage} />
-      <Route path="/account" component={AccountPage} />
-      <Route path="/messages" component={MessagesPage} />
-      <Route path="/cart" component={CartPage} />
-      <Route path="/checkout" component={CheckoutPage} />
-      <Route path="/sell" component={SellPage} />
-      <Route path="/locoloco" component={LocoLocoPage} />
-      <Route path="/shop-by-category" component={ShopByCategoryPage} />
-      <Route path="/design-room" component={DesignRoomPage} />
-      <Route path="/terms" component={TermsPage} />
-      <Route path="/faq" component={FAQPage} />
-      <Route path="/privacy" component={PrivacyPage} />
       <Route path="/about" component={AboutPage} />
+      <Route path="/coming-soon" component={ComingSoonPage} />
+      {/* All other routes redirect to Coming Soon */}
+      <Route path="/items" component={ComingSoonPage} />
+      <Route path="/items/:id" component={ComingSoonPage} />
+      <Route path="/account" component={ComingSoonPage} />
+      <Route path="/messages" component={ComingSoonPage} />
+      <Route path="/cart" component={ComingSoonPage} />
+      <Route path="/checkout" component={ComingSoonPage} />
+      <Route path="/sell" component={ComingSoonPage} />
+      <Route path="/locoloco" component={ComingSoonPage} />
+      <Route path="/shop-by-category" component={ComingSoonPage} />
+      <Route path="/design-room" component={ComingSoonPage} />
+      <Route path="/terms" component={ComingSoonPage} />
+      <Route path="/faq" component={ComingSoonPage} />
+      <Route path="/privacy" component={ComingSoonPage} />
+      <Route path="/community" component={ComingSoonPage} />
+      <Route path="/blog" component={ComingSoonPage} />
+      <Route path="/ambassadors" component={ComingSoonPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -55,8 +44,6 @@ function Router() {
 
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
-  // Authentication temporarily disabled - always show UI
-  // const { user, isLoading } = useAuth();
   
   return (
     <div className="min-h-screen bg-background flex flex-col">

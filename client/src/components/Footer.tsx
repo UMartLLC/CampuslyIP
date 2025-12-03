@@ -27,11 +27,11 @@ export default function Footer() {
                 Sitemap
               </h3>
               <nav className="flex flex-col space-y-1.5 text-sm">
-                <Link href="/account" className="hover:underline">Your Account</Link>
-                <Link href="/items" className="hover:underline">Marketplace</Link>
-                <Link href="/sell" className="hover:underline">Sell an Item</Link>
-                <Link href="/locoloco" className="hover:underline">LocoLoco</Link>
-                <Link href="/design-room" className="hover:underline">Build Your Room</Link>
+                <Link href="/coming-soon" className="hover:underline">Your Account</Link>
+                <Link href="/coming-soon" className="hover:underline">Marketplace</Link>
+                <Link href="/coming-soon" className="hover:underline">Sell an Item</Link>
+                <Link href="/coming-soon" className="hover:underline">LocoLoco</Link>
+                <Link href="/coming-soon" className="hover:underline">Build Your Room</Link>
               </nav>
             </div>
 
@@ -42,9 +42,9 @@ export default function Footer() {
               </h3>
               <nav className="flex flex-col space-y-1.5 text-sm">
                 <Link href="/about" className="hover:underline">About Us</Link>
-                <Link href="/faq" className="hover:underline">FAQ</Link>
+                <Link href="/coming-soon" className="hover:underline">FAQ</Link>
                 <Link href="/about#green-initiative" className="hover:underline">Green Initiative</Link>
-                <Link href="/messages?contact=support" className="hover:underline">Contact Us</Link>
+                <Link href="/coming-soon" className="hover:underline">Contact Us</Link>
               </nav>
             </div>
 
@@ -54,9 +54,9 @@ export default function Footer() {
                 Community
               </h3>
               <nav className="flex flex-col space-y-1.5 text-sm">
-                <Link href="/community" className="hover:underline">Campus Groups</Link>
-                <Link href="/blog" className="hover:underline">Blog</Link>
-                <Link href="/ambassadors" className="hover:underline">Ambassador Program</Link>
+                <Link href="/coming-soon" className="hover:underline">Campus Groups</Link>
+                <Link href="/coming-soon" className="hover:underline">Blog</Link>
+                <Link href="/coming-soon" className="hover:underline">Ambassador Program</Link>
               </nav>
             </div>
 
@@ -93,12 +93,12 @@ export default function Footer() {
 
           {/* CTA Buttons */}
           <div className="flex gap-3">
-            <Link href="/items">
+            <Link href="/coming-soon">
               <Button variant="outline" size="sm" className="rounded-full px-5">
                 Start Buying
               </Button>
             </Link>
-            <Link href="/sell">
+            <Link href="/coming-soon">
               <Button size="sm" className="rounded-full px-5">
                 Start Selling
               </Button>
@@ -112,9 +112,9 @@ export default function Footer() {
         {/* BOTTOM - Legal links left, Copyright right */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pt-4 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <Link href="/account?tab=legal#terms" className="hover:underline">Terms of Use</Link>
-            <Link href="/account?tab=legal#privacy" className="hover:underline">Privacy Policy</Link>
-            <Link href="/account?tab=report" className="hover:underline">Report a Concern</Link>
+            <Link href="/coming-soon" className="hover:underline">Terms of Use</Link>
+            <Link href="/coming-soon" className="hover:underline">Privacy Policy</Link>
+            <Link href="/coming-soon" className="hover:underline">Report a Concern</Link>
             <span className="flex items-center gap-1">
               Your Privacy Choices
             </span>

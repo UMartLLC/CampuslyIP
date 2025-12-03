@@ -36,7 +36,7 @@ export default function Welcome() {
             {CATEGORIES.map((category) => {
               const Icon = category.icon;
               return (
-                <Link key={category.name} href={`/items?category=${encodeURIComponent(category.name)}`}>
+                <Link key={category.name} href="/coming-soon">
                   <Card className="h-full hover-elevate cursor-pointer transition-all duration-200" data-testid={`card-category-${category.name.toLowerCase().replace(/\s+/g, '-')}`}>
                     <CardContent className="p-6 text-center">
                       <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-3">
@@ -54,7 +54,7 @@ export default function Welcome() {
           </div>
 
           <div className="text-center">
-            <Link href="/items">
+            <Link href="/coming-soon">
               <Button size="lg" variant="outline" data-testid="button-view-all-items">
                 View All Items
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -121,12 +121,12 @@ export default function Welcome() {
                 Join the Hundreds Already Trading
               </h3>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/items">
+                <Link href="/coming-soon">
                   <Button size="lg" className="bg-white text-black hover:bg-gray-100" data-testid="button-start-shopping">
                     Start Shopping
                   </Button>
                 </Link>
-                <Link href="/sell">
+                <Link href="/coming-soon">
                   <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" data-testid="button-start-selling">
                     Start Selling
                   </Button>

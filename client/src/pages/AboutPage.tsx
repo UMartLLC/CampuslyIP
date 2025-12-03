@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Shield, Zap, Heart } from "lucide-react";
 import CampuslyGreen from '@assets/generated_images/CampuslyGreen.png';
@@ -83,12 +81,12 @@ export default function AboutPage() {
             to ensure we can deliver excellent service with a greener environment.
           </p>
           <p className="text-muted-foreground mb-4">
-            We’re committed to supporting a green campus by extending the lifecycle of everyday items. By enabling students, faculty, and staff to buy and sell
+            We're committed to supporting a green campus by extending the lifecycle of everyday items. By enabling students, faculty, and staff to buy and sell
             pre-owned goods within their own university community, our platform reduces unnecessary waste, minimizes the demand for new manufacturing, and lowers the environmental impact associated with shipping.
             Every exchanged textbook, laptop, or piece of furniture helps keep useful items out of landfills and promotes a more sustainable culture of reuse.
           </p>
           <p className="text-muted-foreground mb-4">
-            Still curious about our green mission? As Campusly evolves, we’ll continue enhancing our eco-friendly initiatives and include more specific information on this page soon.
+            Still curious about our green mission? As Campusly evolves, we'll continue enhancing our eco-friendly initiatives and include more specific information on this page soon.
           </p>
         </section>
 
@@ -118,7 +116,7 @@ export default function AboutPage() {
               <div className="order-2 md:order-1">
                 <h3 className="text-xl font-semibold mb-2">List Your Items</h3>
                 <p className="text-muted-foreground">
-                  Upload photos, set a price, and provide a short description so buyers know exactly what you’re offering.
+                  Upload photos, set a price, and provide a short description so buyers know exactly what you're offering.
                 </p>
               </div>
               <img

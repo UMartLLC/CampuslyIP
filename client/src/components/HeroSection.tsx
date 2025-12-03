@@ -25,13 +25,13 @@ export default function HeroSection() {
               Join a simple, safe, and streamlined marketplace built for your university community.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/items">
+              <Link href="/coming-soon">
                 <Button size="lg" className="text-lg px-8 py-6" data-testid="button-start-browsing">
                   Start Browsing
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/sell">
+              <Link href="/coming-soon">
                 <Button variant="outline" size="lg" className="text-lg px-8 py-6 bg-background/10 backdrop-blur border-white/20 text-white hover:bg-background/20" data-testid="button-sell-now">
                   Sell Your Items
                 </Button>
