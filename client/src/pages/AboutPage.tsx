@@ -53,6 +53,9 @@ export default function AboutPage() {
             essential resources for underserved students. As we grow, our priority is to ensure our platform remains not 
             only practical and reliable, but also aligned with values of equity, accessibility, and community impact.
           </p>
+          <p className="text-muted-foreground mb-4">
+            Campusly is expected to launch in early 2026.
+          </p>
         </section>
 
         <section className="mb-12">
