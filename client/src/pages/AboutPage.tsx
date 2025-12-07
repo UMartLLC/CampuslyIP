@@ -37,10 +37,24 @@ export default function AboutPage() {
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-4">Our Mission</h2>
           <p className="text-muted-foreground mb-4">
-            Campusly was created to solve a simple problem: students need an easy, safe, and trusted way to buy and sell items within their campus community. Whether it's textbooks, furniture, electronics, or everyday essentials, we believe students should be able to exchange goods conveniently while saving money and reducing waste.
+            Campusly was created to address a simple but widespread challenge: university communities need an easy, safe, and 
+            trusted way to buy and sell items within their campus community. From textbooks and dorm essentials to 
+            electronics and everyday goods, we believe students, faculty, and staff deserve a convenient platform 
+            that reduces financial strain while minimizing waste.
           </p>
           <p className="text-muted-foreground mb-4">
-            Our platform connects students directly, fostering a sense of community while making campus life more affordable and sustainable.
+            Our mission is to strengthen campus communities by enabling secure peer-to-peer exchanges that make 
+            student life more affordable, sustainable, and connected. By promoting reuse and responsible consumption, 
+            we hope to empower students to support one another and reduce their environmental footprint.
+          </p>
+          <p className="text-muted-foreground mb-4">
+            Although Campusly is still in active development, we are committed to uplifting the communities we serve. 
+            We aim to support local businesses, collaborate with service-oriented organizations, and expand access to 
+            essential resources for underserved students. As we grow, our priority is to ensure our platform remains not 
+            only practical and reliable, but also aligned with values of equity, accessibility, and community impact.
+          </p>
+          <p className="text-muted-foreground mb-4">
+            Campusly is expected to launch in early 2026.
           </p>
         </section>
 
